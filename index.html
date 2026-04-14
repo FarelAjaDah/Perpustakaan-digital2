@@ -216,12 +216,17 @@
         <div style="background: var(--card-bg); padding: 30px 20px; border-radius: 28px; text-align: center; border: 1px solid var(--glass-border);">
             
             <div id="guruView" class="hidden">
+              <select id="pilihBuku" style="margin-bottom:10px; padding:10px; width:100%;">
+              <option value="matematika.pdf">Matematika</option>
+              <option value="sejarah.pdf">Sejarah</option>
+                <option value="biologi.pdf">Biologi</option>
+          </select>
                 <p style="color: var(--text-soft); font-weight: 600; font-size: 13px;">KODE KELAS AKTIF</p>
                 <h1 id="activeCode" style="font-size: 42px; color: var(--accent); letter-spacing: 4px; margin: 10px 0;">-----</h1>
                 <button onclick="tambahSoalKuis()" style="background:#10b981; color:white; border:none; padding:14px; border-radius:14px; font-weight:700; width:100%; margin-bottom:12px; cursor:pointer;">➕ Tambah Soal Kuis</button>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <button class="btn-main" onclick="updateClassStatus('Quiz')" style="background: #ef4444;">📝 Kuis</button>
-                    <button class="btn-main" onclick="updateClassStatus('Presentasi')" style="background: #6366f1;">📺 Slide</button>
+                    <button class="btn-main" onclick="mulaiPresentasi()">📺 Slide</button>
                 </div>
                 <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 10px;">Akhiri Sesi</button>
             </div>
@@ -266,6 +271,11 @@
 
     let currentQuizData = [];
     let syncInterval;
+
+    function mulaiPresentasi() {
+  const file = document.getElementById("pilihBuku").value;
+  updateClassStatus("Presentasi", file);
+}
 
     function handleLogin() {
       const userVal = document.getElementById("usernameInput").value.trim();
@@ -338,21 +348,29 @@
         alert("Soal ditambahkan!");
     }
 
-    function updateClassStatus(tipe) {
-      let currentCode = document.getElementById("activeCode").innerText;
-      if (currentCode === "-----" || tipe === 'Selesai') {
-        currentCode = (tipe === 'Selesai') ? "-----" : Math.random().toString(36).substring(2, 7).toUpperCase();
-      }
-      
-      let payload = { code: currentCode, status: tipe };
-      if(tipe === 'Quiz') payload.questions = currentQuizData;
+  function updateClassStatus(tipe, file = null) {
+  let currentCode = document.getElementById("activeCode").innerText;
+  
 
-      fetch(FIREBASE_URL, { method: 'PUT', body: JSON.stringify(payload) }).then(() => {
-        document.getElementById("activeCode").innerText = currentCode;
-        alert("Kelas sekarang: " + tipe);
-      });
-    }
+  if (currentCode === "-----" || tipe === 'Selesai') {
+    currentCode = (tipe === 'Selesai') ? "-----" : Math.random().toString(36).substring(2, 7).toUpperCase();
+  }
 
+  let payload = { 
+    code: currentCode, 
+    status: tipe,
+    file: file // ⬅️ penting
+  };
+
+  if(tipe === 'Quiz') payload.questions = currentQuizData;
+
+  fetch(FIREBASE_URL, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  }).then(() => {
+    document.getElementById("activeCode").innerText = currentCode;
+  });
+}
     function joinClass() {
       const input = document.getElementById("inputClassCode").value.toUpperCase();
       fetch(FIREBASE_URL).then(res => res.json()).then(data => {
@@ -367,19 +385,26 @@
     }
 
     function syncWithGuru() {
-      fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-        document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
-        if(data.status === "Selesai") {
-            document.getElementById("classContent").innerHTML = "Sesi telah berakhir oleh Guru.";
-            clearInterval(syncInterval);
-        } else if(data.status === "Quiz") {
-            document.getElementById("classContent").innerHTML = "Guru memulai Kuis! Perhatikan layar depan.";
-        } else {
-            document.getElementById("classContent").innerHTML = "Materi sedang berlangsung...";
-        }
-      });
-    }
+       fetch(FIREBASE_URL).then(res => res.json()).then(data => {
+    document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
 
+    if(data.status === "Selesai") {
+      document.getElementById("classContent").innerHTML = "Sesi telah berakhir oleh Guru.";
+      clearInterval(syncInterval);
+
+    } else if(data.status === "Quiz") {
+      document.getElementById("classContent").innerHTML = "Guru memulai Kuis!";
+
+    } else if(data.status === "Presentasi") {   // ⬅️ TAMBAH DI SINI
+      document.getElementById("classContent").innerHTML = `
+        <iframe src="books/${data.file}" width="100%" height="400px"></iframe>
+      `;
+
+    } else {
+      document.getElementById("classContent").innerHTML = "Materi sedang berlangsung...";
+    }
+  });
+}
     function toggleTheme() {
       const body = document.body;
       const current = body.getAttribute('data-theme');
