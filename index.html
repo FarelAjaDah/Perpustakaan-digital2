@@ -39,14 +39,13 @@
       background: var(--bg-body); 
       color: var(--text-main);
       overflow-x: hidden;
-      /* Mesh Gradient Background */
       background-image: 
         radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.1) 0px, transparent 50%);
       min-height: 100vh;
     }
 
-    /* --- CUSTOM CURSOR --- */
+    /* --- CURSOR --- */
     #customCursor {
       width: 20px; height: 20px; border: 2px solid var(--primary);
       background: rgba(37, 99, 235, 0.1); border-radius: 50%;
@@ -56,7 +55,7 @@
     .cursor-hover { transform: translate(-50%, -50%) scale(2.5) !important; background: rgba(37, 99, 235, 0.2) !important; border-color: var(--accent); }
     @media (min-width: 1024px) { #customCursor { display: block; } body { cursor: none; } button, input, .book-card, .nav-item { cursor: none; } }
 
-    /* --- LOGIN PAGE --- */
+    /* --- LOGIN --- */
     #loginPage {
       height: 100vh; display: flex; align-items: center; justify-content: center;
       background: linear-gradient(135deg, #1e3a8a, #7c3aed);
@@ -64,8 +63,7 @@
     .login-card {
       background: var(--card-bg); padding: 40px; border-radius: 32px;
       width: 90%; max-width: 400px; text-align: center; 
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
       box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
     }
 
@@ -79,27 +77,22 @@
     .theme-btn { 
       padding: 10px 16px; border-radius: 14px; border: none; 
       background: var(--primary); color: white; font-weight: 700; font-size: 12px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
-    /* --- BOOKS GRID --- */
+    /* --- CONTENT --- */
     .content { padding: 20px 20px 140px; max-width: 900px; margin: auto; }
     .books-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     
     .book-card {
       background: var(--card-bg); border-radius: 28px; padding: 16px;
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+      border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
     }
-    .book-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-color: var(--primary); }
-    .book-card:active { transform: scale(0.95); }
-    
+    .book-card:hover { transform: translateY(-10px); border-color: var(--primary); }
+
     .book-cover {
       width: 100%; aspect-ratio: 1/1; border-radius: 20px;
       display: flex; align-items: center; justify-content: center; 
       font-size: 48px; margin-bottom: 12px;
-      filter: drop-shadow(0 8px 8px rgba(0,0,0,0.1));
     }
 
     /* --- NAV BAR --- */
@@ -108,13 +101,12 @@
       width: 85%; max-width: 400px; background: var(--nav-bg);
       padding: 10px; border-radius: 30px; display: flex; z-index: 1000;
       backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
     .nav-item {
       flex: 1; padding: 14px; text-align: center; color: #94a3b8;
       font-weight: 700; font-size: 14px; border-radius: 22px;
     }
-    .nav-item.active { background: white; color: #0f172a; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .nav-item.active { background: white; color: #0f172a; }
     [data-theme="dark"] .nav-item.active { background: var(--primary); color: white; }
 
     input { 
@@ -122,20 +114,14 @@
       background: rgba(0,0,0,0.05); color: var(--text-main); margin-top: 10px;
       font-family: inherit; font-weight: 600;
     }
-    [data-theme="dark"] input { background: rgba(255,255,255,0.05); }
-    input:focus { outline: none; border-color: var(--primary); background: var(--card-bg); }
-
     .btn-main {
       width: 100%; padding: 18px; border-radius: 18px; border: none;
       background: linear-gradient(45deg, var(--primary), var(--accent));
       color: white; font-weight: 800; margin-top: 20px;
-      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
     }
-    .btn-main:active { transform: scale(0.97); }
-
     .hidden { display: none !important; }
-    .animate { animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeIn 0.6s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -146,10 +132,10 @@
     <div class="login-card animate">
       <h1 style="font-size: 50px; margin-bottom: 10px;">📚</h1>
       <h2 style="font-weight: 800; font-size: 28px;">Pustaka Digital</h2>
-      <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 30px;">V3 Digital Library System</p>
+      <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 30px;">V3 Class Sync Edition</p>
       
       <input type="text" id="usernameInput" placeholder="Nama Pengguna">
-      <input type="password" id="passcodeInput" placeholder="Kode Akses">
+      <input type="password" id="passcodeInput" placeholder="Kode Akses (AKUGURU/MURID)">
       <button class="btn-main" onclick="handleLogin()">Masuk Sekarang</button>
     </div>
   </div>
@@ -168,18 +154,37 @@
       <div id="bookList" class="books-grid"></div>
 
       <div id="kelasSection" class="hidden animate">
-        <div style="background: var(--card-bg); padding: 40px 20px; border-radius: 32px; text-align: center; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);">
-          <div id="guruView" class="hidden">
-            <p style="color: var(--text-soft); font-weight: 600;">Kode Ruang Kelas</p>
-            <h1 id="activeCode" style="font-size: 48px; margin: 20px 0; color: var(--primary); letter-spacing: 8px; font-weight: 800;">-----</h1>
-            <button class="btn-main" onclick="generateClassCode()">Buat Kode Baru</button>
-          </div>
-          <div id="muridView" class="hidden">
-            <h3 style="font-weight: 800; margin-bottom: 10px;">Gabung Kelas</h3>
-            <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 20px;">Masukkan kode dari guru untuk sinkronisasi</p>
-            <input type="text" id="inputClassCode" placeholder="Contoh: X7Z9K" style="text-align: center; letter-spacing: 4px;">
-            <button class="btn-main" onclick="joinClass()">Gabung Sekarang</button>
-          </div>
+        <div style="background: var(--card-bg); padding: 30px 20px; border-radius: 32px; text-align: center; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);">
+            
+            <div id="guruView" class="hidden">
+                <p style="color: var(--text-soft); font-weight: 600;">Kontrol Kelas Digital</p>
+                <h1 id="activeCode" style="font-size: 48px; margin: 10px 0; color: var(--primary); letter-spacing: 8px; font-weight: 800;">-----</h1>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                    <button class="btn-main" onclick="updateClassStatus('Quiz')" style="background: #ef4444; margin: 0;">📝 Mulai Kuis</button>
+                    <button class="btn-main" onclick="updateClassStatus('Presentasi')" style="background: #7c3aed; margin: 0;">📺 Presentasi</button>
+                </div>
+                <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: #64748b; margin-top: 10px;">🔴 Akhiri Kelas</button>
+            </div>
+
+            <div id="muridView" class="hidden">
+                <div id="joinArea">
+                    <h3 style="font-weight: 800; margin-bottom: 10px;">Gabung Kelas</h3>
+                    <p style="color: var(--text-soft); font-size: 13px; margin-bottom: 15px;">Masukkan kode dari Guru untuk sinkronisasi</p>
+                    <input type="text" id="inputClassCode" placeholder="Kode Kelas" style="text-align: center; letter-spacing: 4px;">
+                    <button class="btn-main" onclick="joinClass()">Gabung Sekarang</button>
+                </div>
+
+                <div id="liveClassArea" class="hidden">
+                    <div style="background: var(--primary); color: white; padding: 15px; border-radius: 20px; margin-bottom: 20px;">
+                        <p style="font-size: 11px; opacity: 0.8; font-weight: 700;">LIVE STATUS:</p>
+                        <h2 id="currentStatus" style="font-weight: 800; text-transform: uppercase;">Menunggu...</h2>
+                    </div>
+                    <div id="classContent" style="padding: 30px 20px; border: 2px dashed var(--primary); border-radius: 20px; color: var(--text-soft); font-weight: 600;">
+                        Menunggu instruksi Guru...
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
     </div>
@@ -192,8 +197,9 @@
   </div>
 
   <script>
-    const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_code.json";
+    const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
     const ACCESS_KEYS = { "AKUGURU": "Guru", "MURID": "Murid" };
+    
     const books = [
       { title: "Matematika", file: "matematika.pdf", emoji: "📐", color: "#3b82f6" },
       { title: "Sejarah", file: "sejarah.pdf", emoji: "📜", color: "#f59e0b" },
@@ -208,35 +214,25 @@
       cursor.style.left = e.clientX + 'px';
       cursor.style.top = e.clientY + 'px';
     });
-    document.addEventListener('mouseover', e => {
-      if (e.target.closest('.book-card') || e.target.closest('button') || e.target.closest('.nav-item')) cursor.classList.add('cursor-hover');
-    });
-    document.addEventListener('mouseout', e => {
-      if (e.target.closest('.book-card') || e.target.closest('button') || e.target.closest('.nav-item')) cursor.classList.remove('cursor-hover');
-    });
 
-    // --- THEME LOGIC ---
+    // --- THEME ---
     function toggleTheme() {
-      const current = document.body.getAttribute('data-theme');
-      const target = current === 'dark' ? 'light' : 'dark';
+      const target = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.body.setAttribute('data-theme', target);
       localStorage.setItem('theme', target);
     }
 
-    // --- CORE LOGIC ---
+    // --- AUTH ---
     function handleLogin() {
       const userVal = document.getElementById("usernameInput").value.trim();
       const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
 
-      if (userVal === "") { alert("Masukkan nama kamu!"); return; }
-
+      if (userVal === "") return alert("Nama tidak boleh kosong!");
       if (ACCESS_KEYS[passVal]) {
         localStorage.setItem("user_role", ACCESS_KEYS[passVal]);
         localStorage.setItem("user_name", userVal);
         initApp();
-      } else { 
-        alert("Kode Akses Salah!"); 
-      }
+      } else { alert("Kode Akses Salah!"); }
     }
 
     function initApp() {
@@ -244,18 +240,19 @@
       const name = localStorage.getItem("user_name");
       if(!role || !name) return;
 
-      const theme = localStorage.getItem('theme');
-      if(theme) document.body.setAttribute('data-theme', theme);
-
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
       document.getElementById("welcomeText").innerText = `Halo, ${name}! 👋`;
       document.getElementById("roleBadge").innerText = `${role.toUpperCase()} MODE`;
+      
+      const theme = localStorage.getItem('theme');
+      if(theme) document.body.setAttribute('data-theme', theme);
 
       showSection('books');
       renderBooks("");
     }
 
+    // --- BOOKS ---
     function renderBooks(kw) {
       const list = document.getElementById("bookList");
       list.innerHTML = "";
@@ -264,11 +261,12 @@
           <div class="book-card animate" onclick="window.open('books/${b.file}', '_blank')">
             <div class="book-cover" style="background: ${b.color}15; color: ${b.color};">${b.emoji}</div>
             <div style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">${b.title}</div>
-            <div style="font-size: 11px; color: var(--text-soft); font-weight: 600;">Lihat Materi PDF</div>
+            <div style="font-size: 11px; color: var(--text-soft); font-weight: 600;">Materi PDF</div>
           </div>`;
       });
     }
 
+    // --- NAVIGATION ---
     function showSection(type) {
       document.getElementById("bookList").classList.toggle("hidden", type !== 'books');
       document.getElementById("kelasSection").classList.toggle("hidden", type !== 'kelas');
@@ -277,31 +275,81 @@
       if(type === 'kelas') setupKelasUI();
     }
 
+    // --- KELAS LOGIC (SYNC) ---
     function setupKelasUI() {
       const isGuru = localStorage.getItem("user_role") === "Guru";
       document.getElementById("guruView").classList.toggle("hidden", !isGuru);
       document.getElementById("muridView").classList.toggle("hidden", isGuru);
+      
       fetch(FIREBASE_URL).then(res => res.json()).then(data => { 
-        if(data) document.getElementById("activeCode").innerText = data; 
+        if(data && data.code) document.getElementById("activeCode").innerText = data.code; 
       });
     }
 
-    function generateClassCode() {
-      const newCode = Math.random().toString(36).substring(2, 7).toUpperCase();
-      fetch(FIREBASE_URL, { method: 'PUT', body: JSON.stringify(newCode) }).then(() => {
-        document.getElementById("activeCode").innerText = newCode;
+    function updateClassStatus(tipe) {
+      // Jika akhiri kelas, reset kode. Jika baru mulai dan kode masih kosong, buat baru.
+      let currentCode = document.getElementById("activeCode").innerText;
+      if (tipe === 'Selesai') {
+          currentCode = "-----";
+      } else if (currentCode === "-----") {
+          currentCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+      }
+
+      const payload = { code: currentCode, status: tipe };
+
+      fetch(FIREBASE_URL, { method: 'PUT', body: JSON.stringify(payload) })
+      .then(() => {
+        document.getElementById("activeCode").innerText = payload.code;
+        alert("Mode Kelas: " + tipe);
       });
     }
 
+    let syncInterval;
     function joinClass() {
       const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
-      fetch(FIREBASE_URL).then(res => res.json()).then(validCode => {
-        if (input === validCode) alert("✅ Berhasil Masuk Kelas!");
-        else alert("❌ Kode Salah!");
+      fetch(FIREBASE_URL).then(res => res.json()).then(data => {
+        if (input === data.code && data.code !== "-----") {
+            alert("✅ Terhubung ke Kelas!");
+            document.getElementById("joinArea").classList.add("hidden");
+            document.getElementById("liveClassArea").classList.remove("hidden");
+            
+            // Mulai monitoring real-time
+            if(syncInterval) clearInterval(syncInterval);
+            syncInterval = setInterval(syncWithGuru, 3000);
+            syncWithGuru(); 
+        } else {
+            alert("❌ Kode salah atau kelas belum dibuka.");
+        }
       });
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    function syncWithGuru() {
+        fetch(FIREBASE_URL).then(res => res.json()).then(data => {
+            const statusEl = document.getElementById("currentStatus");
+            const contentEl = document.getElementById("classContent");
+            
+            statusEl.innerText = data.status;
+
+            if(data.status === "Quiz") {
+                contentEl.innerHTML = "📝 <br><br> Guru sedang memulai <b>KUIS</b>.<br>Silahkan lihat soal di papan tulis!";
+                contentEl.style.borderColor = "#ef4444";
+            } else if(data.status === "Presentasi") {
+                contentEl.innerHTML = "📺 <br><br> Guru sedang menjelaskan <b>MATERI</b>.<br>Silahkan buka buku yang relevan.";
+                contentEl.style.borderColor = "#7c3aed";
+            } else {
+                contentEl.innerHTML = "Kelas telah berakhir atau belum dimulai.";
+                statusEl.innerText = "OFFLINE";
+                contentEl.style.borderColor = "var(--glass-border)";
+            }
+        });
+    }
+
+    function logout() { 
+        if(syncInterval) clearInterval(syncInterval);
+        localStorage.clear(); 
+        location.reload(); 
+    }
+
     document.getElementById("searchInput").oninput = (e) => renderBooks(e.target.value);
     window.onload = initApp;
   </script>
