@@ -2,269 +2,270 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pustaka Furina v3 - Fixed</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Pustaka Furina v3 - Final</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --primary: #1e3a8a; --accent: #3b82f6; --bg: #f8fafc;
-      --card: #ffffff; --text: #1e293b; --danger: #ef4444; --gray: #64748b;
+      --bg-body: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-soft: #64748b;
+      --primary: #2563eb;
+      --accent: #7c3aed;
+      --nav-bg: #1e293b;
+      --glass: rgba(255, 255, 255, 0.8);
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
+    /* Tema Gelap */
+    [data-theme="dark"] {
+      --bg-body: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f1f5f9;
+      --text-soft: #94a3b8;
+      --nav-bg: #000000;
+      --glass: rgba(15, 23, 42, 0.8);
+    }
 
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; transition: background 0.3s, color 0.3s; }
 
-    /* --- LOGIN --- */
+    body { 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      background: var(--bg-body); 
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* --- CUSTOM CURSOR --- */
+    #customCursor {
+      width: 20px; height: 20px; border: 2px solid var(--primary);
+      background: rgba(37, 99, 235, 0.1); border-radius: 50%;
+      position: fixed; pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%); display: none;
+      transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
+    }
+    .cursor-hover { transform: translate(-50%, -50%) scale(2.5) !important; background: rgba(37, 99, 235, 0.2) !important; }
+    @media (min-width: 1024px) { #customCursor { display: block; } body { cursor: none; } button, input, .book-card { cursor: none; } }
+
+    /* --- LOGIN PAGE --- */
     #loginPage {
-      display: flex; align-items: center; justify-content: center;
-      height: 100vh; background: radial-gradient(circle at top left, var(--accent), var(--primary));
-      padding: 20px;
+      height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #1e3a8a, #7c3aed);
     }
     .login-card {
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-      padding: 40px 30px; border-radius: 28px; width: 100%; max-width: 360px;
-      text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-    }
-    input {
-      width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px;
-      border: 2px solid #e2e8f0; font-size: 16px; text-align: center; outline: none;
+      background: var(--card-bg); padding: 40px; border-radius: 32px;
+      width: 90%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
     }
 
-    /* --- DASHBOARD --- */
+    /* --- HEADER --- */
     .header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 24px 24px;
+      position: sticky; top: 0; z-index: 100;
+      background: var(--glass); backdrop-filter: blur(15px);
+      padding: 20px; border-bottom: 1px solid rgba(148, 163, 184, 0.1);
     }
-    .menu-container { display: flex; flex-direction: column; gap: 10px; padding: 20px; }
-    .menu-row { display: flex; gap: 10px; }
-    .btn {
-      flex: 1; background: white; padding: 15px; border-radius: 15px;
-      text-align: center; font-size: 14px; font-weight: 700;
-      border: 1px solid #e2e8f0; cursor: pointer; text-decoration: none; color: var(--text);
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .theme-btn { 
+      padding: 8px 12px; border-radius: 12px; border: none; 
+      background: var(--primary); color: white; font-weight: bold; font-size: 12px;
     }
-    .btn:active { background: #f1f5f9; transform: scale(0.98); }
-    .btn-logout { color: var(--danger); border-color: #fee2e2; }
-    
-    .books { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; padding: 20px; max-width: 1000px; margin: auto; }
-    .book-card { 
-      background: white; padding: 10px; border-radius: 20px; 
-      border: 1px solid #f1f5f9; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;
-    }
-    .book-card:active { transform: scale(0.95); }
-    .cover { width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; background: #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
-    /* --- KELAS AREA --- */
-    #kelasArea { background: #e0f2fe; margin: 20px; padding: 20px; border-radius: 20px; text-align: center; }
-    .code-display { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: 5px; margin: 15px 0; }
+    /* --- BOOKS GRID --- */
+    .content { padding: 20px 20px 120px; max-width: 900px; margin: auto; }
+    .books-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    
+    .book-card {
+      background: var(--card-bg); border-radius: 24px; padding: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .book-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-color: var(--primary); }
+    
+    .book-cover {
+      width: 100%; aspect-ratio: 3/4; border-radius: 16px;
+      background: var(--bg-body); display: flex; align-items: center;
+      justify-content: center; font-size: 40px; margin-bottom: 10px;
+    }
+
+    /* --- NAV BAR --- */
+    .nav-bar {
+      position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 380px; background: var(--nav-bg);
+      padding: 8px; border-radius: 24px; display: flex; z-index: 1000;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+    }
+    .nav-item {
+      flex: 1; padding: 12px; text-align: center; color: #94a3b8;
+      font-weight: 700; font-size: 14px; border-radius: 18px;
+    }
+    .nav-item.active { background: #ffffff; color: #0f172a; }
+    [data-theme="dark"] .nav-item.active { background: var(--primary); color: white; }
+
+    input { 
+      width: 100%; padding: 14px; border-radius: 14px; border: none; 
+      background: var(--bg-body); color: var(--text-main); margin-top: 10px;
+    }
+    .btn-main {
+      width: 100%; padding: 16px; border-radius: 16px; border: none;
+      background: var(--primary); color: white; font-weight: 800; margin-top: 15px;
+    }
 
     .hidden { display: none !important; }
+    .animate { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
+  <div id="customCursor"></div>
+
   <div id="loginPage">
-    <div class="login-card">
-      <span style="font-size:50px">🔑</span>
-      <h2>Akses Pustaka</h2>
-      <input type="password" id="passcodeInput" placeholder="Masukkan kode akses...(Guru/Murid)" maxlength="20">
-      <button onclick="handleLogin()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer">Masuk</button>
+    <div class="login-card animate">
+      <h1 style="font-size: 40px;">🛸</h1>
+      <h2 style="margin: 10px 0;">Pustaka Furina</h2>
+      <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 20px;">V3 Digital Library System</p>
+      <input type="password" id="passcodeInput" placeholder="Kode Akses">
+      <button class="btn-main" onclick="handleLogin()">Masuk Ke Panel</button>
     </div>
   </div>
 
   <div id="mainPage" class="hidden">
     <div class="header">
-      <div id="userInfo" style="font-size:12px; margin-bottom:5px"></div>
-      <h2 style="margin:0">Pustaka Furina</h2>
-      <input type="text" id="searchInput" placeholder="Cari judul buku..." style="max-width:400px; margin-top:15px">
-    </div>
-
-    <div class="menu-container">
-      <div class="menu-row">
-        <div class="btn" onclick="showSection('books')">📚 Koleksi</div>
-        <div class="btn" onclick="showSection('kelas')">🏫 Ruang Kelas</div>
+      <div class="top-bar">
+        <div id="roleBadge" style="font-size: 10px; font-weight: 800; color: var(--primary);">OFFLINE MODE</div>
+        <button class="theme-btn" onclick="toggleTheme()">🌓 Mode</button>
       </div>
-      <button class="btn btn-logout" onclick="logout()">🚪 Keluar</button>
+      <h2 id="welcomeText">Halo, Pelajar! 👋</h2>
+      <input type="text" id="searchInput" placeholder="Cari buku...">
     </div>
 
-    <div id="kelasSection" class="hidden">
-      <div id="kelasArea">
-        <div id="guruView" class="hidden">
-          <h3>Panel Guru</h3>
-          <p>Kode kelas aktif untuk murid:</p>
-          <div id="activeCode" class="code-display">-----</div>
-          <button onclick="generateClassCode()" style="padding:12px 20px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:700; cursor:pointer">Buat Kode Baru</button>
-        </div>
+    <div class="content">
+      <div id="bookList" class="books-grid animate"></div>
 
-        <div id="muridView" class="hidden">
-          <h3>Masuk Kelas</h3>
-          <p>Masukkan kode dari Guru:</p>
-          <input type="text" id="inputClassCode" placeholder="Contoh: A1B2C">
-          <button onclick="joinClass()" style="width:100%; padding:14px; background:var(--accent); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer">Gabung Kelas</button>
-        </div>
-
-        <div id="classContent" class="hidden">
-          <h2 style="color: #047857">✅ Berhasil Masuk Kelas</h2>
-          <p>Materi sedang dipersiapkan oleh guru.</p>
-          <button onclick="leaveClass()" style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:bold">Keluar Ruangan</button>
+      <div id="kelasSection" class="hidden animate">
+        <div style="background: var(--card-bg); padding: 30px; border-radius: 28px; text-align: center; border: 1px solid rgba(148,163,184,0.1);">
+          <div id="guruView" class="hidden">
+            <p style="color: var(--text-soft);">Kode Kelas Aktif</p>
+            <h1 id="activeCode" style="font-size: 40px; margin: 20px 0; color: var(--primary); letter-spacing: 5px;">-----</h1>
+            <button class="btn-main" onclick="generateClassCode()">Perbarui Kode</button>
+          </div>
+          <div id="muridView" class="hidden">
+            <h3>Gabung Ruang Kelas</h3>
+            <input type="text" id="inputClassCode" placeholder="Masukkan 5 Kode">
+            <button class="btn-main" onclick="joinClass()">Masuk Sekarang</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div id="bookList" class="books"></div>
+    <div class="nav-bar">
+      <div class="nav-item active" id="nav-books" onclick="showSection('books')">Koleksi</div>
+      <div class="nav-item" id="nav-kelas" onclick="showSection('kelas')">Kelas</div>
+      <div class="nav-item" onclick="logout()" style="color: #ef4444;">Keluar</div>
+    </div>
   </div>
 
   <script>
-// GANTI DENGAN URL DATABASE FIREBASE KAMU
-  const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_code.json";
+    const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_code.json";
+    const ACCESS_KEYS = { "AKUGURU": "Guru", "MURID": "Murid" };
+    const books = [
+      { title: "Matematika", file: "matematika.pdf", emoji: "📐", color: "#3b82f6" },
+      { title: "Sejarah", file: "sejarah.pdf", emoji: "📜", color: "#f59e0b" },
+      { title: "Biologi", file: "biologi.pdf", emoji: "🌿", color: "#10b981" },
+      { title: "Fisika", file: "fisika.pdf", emoji: "⚛️", color: "#ef4444" }
+    ];
 
-  const ACCESS_KEYS = { "AKUGURU": "Guru", "MURID": "Murid" };
-  const books = [
-      { file: "matematika.pdf", cover: "cover/matematika.png" },
-      { file: "sejarah.pdf", cover: "cover/sejarah.png" },
-      { file: "biologi.pdf", cover: "https://via.placeholder.com/150x200?text=Biologi" }
-  ];
+    // --- CURSOR LOGIC ---
+    const cursor = document.getElementById('customCursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+    document.addEventListener('mouseover', e => {
+      if (e.target.closest('.book-card') || e.target.closest('button')) cursor.classList.add('cursor-hover');
+    });
+    document.addEventListener('mouseout', e => {
+      if (e.target.closest('.book-card') || e.target.closest('button')) cursor.classList.remove('cursor-hover');
+    });
 
-  let currentUser = null;
-
-  function handleLogin() {
-    const code = document.getElementById("passcodeInput").value.trim().toUpperCase();
-    if (ACCESS_KEYS[code]) {
-      currentUser = ACCESS_KEYS[code];
-      localStorage.setItem("user_role", currentUser);
-      initApp();
-    } else { alert("Kode akses salah!"); }
-  }
-
-  function initApp() {
-    currentUser = localStorage.getItem("user_role");
-    if(!currentUser) return;
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("mainPage").classList.remove("hidden");
-    document.getElementById("userInfo").innerHTML = `Login sebagai: <b>${currentUser}</b>`;
-    showSection('books');
-    renderBooks("");
-  }
-
-  function showSection(type) {
-    const bookList = document.getElementById("bookList");
-    const kelasSection = document.getElementById("kelasSection");
-    if(type === 'books') {
-      bookList.classList.remove("hidden");
-      kelasSection.classList.add("hidden");
-    } else {
-      bookList.classList.add("hidden");
-      kelasSection.classList.remove("hidden");
-      setupKelasUI();
+    // --- THEME LOGIC ---
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme');
+      const target = current === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', target);
+      localStorage.setItem('theme', target);
     }
-  }
 
-// --- LOGIKA KELAS (FIXED) ---
-  function setupKelasUI() {
-    const isGuru = currentUser === "Guru";
-    document.getElementById("guruView").classList.toggle("hidden", !isGuru);
-    document.getElementById("muridView").classList.toggle("hidden", isGuru);
-    document.getElementById("classContent").classList.add("hidden");
-    
-    // Ambil kode aktif saat ini dari Firebase
-    fetch(FIREBASE_URL)
-      .then(res => res.json())
-      .then(data => {
-        if(data && isGuru) {
-          document.getElementById("activeCode").innerText = data;
-        }
-      }).catch(err => console.error("Gagal mengambil data:", err));
-  }
+    // --- CORE LOGIC ---
+    function handleLogin() {
+      const val = document.getElementById("passcodeInput").value.trim().toUpperCase();
+      if (ACCESS_KEYS[val]) {
+        localStorage.setItem("user_role", ACCESS_KEYS[val]);
+        initApp();
+      } else { alert("Kode Salah!"); }
+    }
 
-  function generateClassCode() {
-    // Membuat kode random 5 karakter
-    const newCode = Math.random().toString(36).substring(2, 7).toUpperCase();
-    
-    // PUT digunakan untuk menimpa kode lama dengan kode baru
-    fetch(FIREBASE_URL, {
-      method: 'PUT',
-      body: JSON.stringify(newCode)
-    })
-    .then(res => {
-      if(res.ok) {
+    function initApp() {
+      const role = localStorage.getItem("user_role");
+      if(!role) return;
+      
+      const theme = localStorage.getItem('theme');
+      if(theme) document.body.setAttribute('data-theme', theme);
+
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("mainPage").classList.remove("hidden");
+      document.getElementById("welcomeText").innerText = `Halo, ${role}! 👋`;
+      showSection('books');
+      renderBooks("");
+    }
+
+    function renderBooks(kw) {
+      const list = document.getElementById("bookList");
+      list.innerHTML = "";
+      books.filter(b => b.title.toLowerCase().includes(kw.toLowerCase())).forEach(b => {
+        list.innerHTML += `
+          <div class="book-card animate" onclick="window.open('books/${b.file}', '_blank')">
+            <div class="book-cover" style="background: ${b.color}15; color: ${b.color};">${b.emoji}</div>
+            <div style="font-weight: 800; font-size: 14px;">${b.title}</div>
+            <div style="font-size: 10px; color: var(--text-soft);">Buka Materi PDF</div>
+          </div>`;
+      });
+    }
+
+    function showSection(type) {
+      document.getElementById("bookList").classList.toggle("hidden", type !== 'books');
+      document.getElementById("kelasSection").classList.toggle("hidden", type !== 'kelas');
+      document.getElementById("nav-books").classList.toggle("active", type === 'books');
+      document.getElementById("nav-kelas").classList.toggle("active", type === 'kelas');
+      if(type === 'kelas') setupKelasUI();
+    }
+
+    function setupKelasUI() {
+      const isGuru = localStorage.getItem("user_role") === "Guru";
+      document.getElementById("guruView").classList.toggle("hidden", !isGuru);
+      document.getElementById("muridView").classList.toggle("hidden", isGuru);
+      fetch(FIREBASE_URL).then(res => res.json()).then(data => { if(data) document.getElementById("activeCode").innerText = data; });
+    }
+
+    function generateClassCode() {
+      const newCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+      fetch(FIREBASE_URL, { method: 'PUT', body: JSON.stringify(newCode) }).then(() => {
         document.getElementById("activeCode").innerText = newCode;
-        alert("Kode Kelas Baru: " + newCode);
-      } else {
-        alert("Gagal terhubung ke database!");
-      }
-    })
-    .catch(err => {
-      alert("Cek koneksi internet kamu!");
-      console.error(err);
-    });
-  }
-
-  function joinClass() {
-    const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
-    
-    if(!input) return alert("Masukkan kode dulu!");
-
-    fetch(FIREBASE_URL)
-      .then(res => res.json())
-      .then(validCode => {
-        if (input === validCode) {
-          document.getElementById("muridView").classList.add("hidden");
-          document.getElementById("classContent").classList.remove("hidden");
-        } else {
-          alert("Kode kelas salah atau sudah kadaluarsa!");
-        }
-      })
-      .catch(err => alert("Gagal mengecek kode. Pastikan internet aktif!"));
-  }
-    
-    // Cek ke Firebase apakah kode cocok
-    fetch(FIREBASE_URL).then(res => res.json()).then(validCode => {
-      if (input === validCode && validCode) {
-        document.getElementById("muridView").classList.add("hidden");
-        document.getElementById("classContent").classList.remove("hidden");
-      } else {
-        alert("Kode kelas salah atau belum aktif!");
-      }
-    });
-  
-
-  function leaveClass() {
-    document.getElementById("classContent").classList.add("hidden");
-    document.getElementById("muridView").classList.remove("hidden");
-  }
-
-  function renderBooks(kw) {
-    const list = document.getElementById("bookList");
-    list.innerHTML = "";
-    const filtered = books.filter(b => b.file.toLowerCase().includes(kw.toLowerCase()));
-    if(filtered.length === 0) {
-      list.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:var(--gray)">Buku tidak ditemukan.</p>`;
-      return;
+      });
     }
-    filtered.forEach(b => {
-      const title = b.file.replace('.pdf','').split('_').join(' ');
-      list.innerHTML += `
-        <div class="book-card" onclick="window.open('books/${b.file}', '_blank')">
-          <img src="${b.cover}" class="cover" onerror="this.src='https://via.placeholder.com/150x200?text=No+Cover'">
-          <div style="font-weight:bold; margin-top:10px; font-size:14px; text-transform:capitalize">${title}</div>
-        </div>`;
-    });
-  }
 
-  document.getElementById("searchInput").oninput = (e) => {
-    showSection('books');
-    renderBooks(e.target.value);
-  };
-
-  function logout() {
-    if(confirm("Keluar dari aplikasi?")) {
-      localStorage.clear();
-      location.reload();
+    function joinClass() {
+      const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
+      fetch(FIREBASE_URL).then(res => res.json()).then(validCode => {
+        if (input === validCode) alert("✅ Berhasil Masuk Kelas!");
+        else alert("❌ Kode Salah!");
+      });
     }
-  }
 
-  window.onload = initApp;
+    function logout() { localStorage.clear(); location.reload(); }
+    document.getElementById("searchInput").oninput = (e) => renderBooks(e.target.value);
+    window.onload = initApp;
   </script>
 </body>
 </html>
