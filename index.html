@@ -3,38 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Pustaka Furina v3 - Final</title>
+  <title>Pustaka Furina v3 - Pro Edition</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-body: #f8fafc;
-      --card-bg: #ffffff;
+      --bg-body: #f1f5f9;
+      --card-bg: rgba(255, 255, 255, 0.8);
       --text-main: #0f172a;
       --text-soft: #64748b;
       --primary: #2563eb;
       --accent: #7c3aed;
-      --nav-bg: #1e293b;
-      --glass: rgba(255, 255, 255, 0.8);
+      --nav-bg: rgba(15, 23, 42, 0.9);
+      --glass-border: rgba(255, 255, 255, 0.5);
     }
 
-    /* Tema Gelap */
     [data-theme="dark"] {
-      --bg-body: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f1f5f9;
+      --bg-body: #020617;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --text-main: #f8fafc;
       --text-soft: #94a3b8;
-      --nav-bg: #000000;
-      --glass: rgba(15, 23, 42, 0.8);
+      --nav-bg: rgba(0, 0, 0, 0.8);
+      --glass-border: rgba(255, 255, 255, 0.1);
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; transition: background 0.3s, color 0.3s; }
+    * { 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent; 
+      margin: 0; padding: 0; 
+      transition: background 0.4s, color 0.4s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    }
 
     body { 
       font-family: 'Plus Jakarta Sans', sans-serif; 
       background: var(--bg-body); 
       color: var(--text-main);
       overflow-x: hidden;
+      /* Mesh Gradient Background */
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.1) 0px, transparent 50%);
+      min-height: 100vh;
     }
 
     /* --- CUSTOM CURSOR --- */
@@ -43,10 +52,9 @@
       background: rgba(37, 99, 235, 0.1); border-radius: 50%;
       position: fixed; pointer-events: none; z-index: 9999;
       transform: translate(-50%, -50%); display: none;
-      transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
     }
-    .cursor-hover { transform: translate(-50%, -50%) scale(2.5) !important; background: rgba(37, 99, 235, 0.2) !important; }
-    @media (min-width: 1024px) { #customCursor { display: block; } body { cursor: none; } button, input, .book-card { cursor: none; } }
+    .cursor-hover { transform: translate(-50%, -50%) scale(2.5) !important; background: rgba(37, 99, 235, 0.2) !important; border-color: var(--accent); }
+    @media (min-width: 1024px) { #customCursor { display: block; } body { cursor: none; } button, input, .book-card, .nav-item { cursor: none; } }
 
     /* --- LOGIN PAGE --- */
     #loginPage {
@@ -55,65 +63,79 @@
     }
     .login-card {
       background: var(--card-bg); padding: 40px; border-radius: 32px;
-      width: 90%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      width: 90%; max-width: 400px; text-align: center; 
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
     }
 
     /* --- HEADER --- */
     .header {
       position: sticky; top: 0; z-index: 100;
-      background: var(--glass); backdrop-filter: blur(15px);
-      padding: 20px; border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      background: var(--card-bg); backdrop-filter: blur(15px);
+      padding: 25px 20px; border-bottom: 1px solid var(--glass-border);
     }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .theme-btn { 
-      padding: 8px 12px; border-radius: 12px; border: none; 
-      background: var(--primary); color: white; font-weight: bold; font-size: 12px;
+      padding: 10px 16px; border-radius: 14px; border: none; 
+      background: var(--primary); color: white; font-weight: 700; font-size: 12px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
     /* --- BOOKS GRID --- */
-    .content { padding: 20px 20px 120px; max-width: 900px; margin: auto; }
-    .books-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .content { padding: 20px 20px 140px; max-width: 900px; margin: auto; }
+    .books-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     
     .book-card {
-      background: var(--card-bg); border-radius: 24px; padding: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.1);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      background: var(--card-bg); border-radius: 28px; padding: 16px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
     }
-    .book-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-color: var(--primary); }
+    .book-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-color: var(--primary); }
+    .book-card:active { transform: scale(0.95); }
     
     .book-cover {
-      width: 100%; aspect-ratio: 3/4; border-radius: 16px;
-      background: var(--bg-body); display: flex; align-items: center;
-      justify-content: center; font-size: 40px; margin-bottom: 10px;
+      width: 100%; aspect-ratio: 1/1; border-radius: 20px;
+      display: flex; align-items: center; justify-content: center; 
+      font-size: 48px; margin-bottom: 12px;
+      filter: drop-shadow(0 8px 8px rgba(0,0,0,0.1));
     }
 
     /* --- NAV BAR --- */
     .nav-bar {
-      position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-      width: 90%; max-width: 380px; background: var(--nav-bg);
-      padding: 8px; border-radius: 24px; display: flex; z-index: 1000;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      width: 85%; max-width: 400px; background: var(--nav-bg);
+      padding: 10px; border-radius: 30px; display: flex; z-index: 1000;
+      backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
     .nav-item {
-      flex: 1; padding: 12px; text-align: center; color: #94a3b8;
-      font-weight: 700; font-size: 14px; border-radius: 18px;
+      flex: 1; padding: 14px; text-align: center; color: #94a3b8;
+      font-weight: 700; font-size: 14px; border-radius: 22px;
     }
-    .nav-item.active { background: #ffffff; color: #0f172a; }
+    .nav-item.active { background: white; color: #0f172a; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     [data-theme="dark"] .nav-item.active { background: var(--primary); color: white; }
 
     input { 
-      width: 100%; padding: 14px; border-radius: 14px; border: none; 
-      background: var(--bg-body); color: var(--text-main); margin-top: 10px;
+      width: 100%; padding: 16px; border-radius: 16px; border: 2px solid transparent; 
+      background: rgba(0,0,0,0.05); color: var(--text-main); margin-top: 10px;
+      font-family: inherit; font-weight: 600;
     }
+    [data-theme="dark"] input { background: rgba(255,255,255,0.05); }
+    input:focus { outline: none; border-color: var(--primary); background: var(--card-bg); }
+
     .btn-main {
-      width: 100%; padding: 16px; border-radius: 16px; border: none;
-      background: var(--primary); color: white; font-weight: 800; margin-top: 15px;
+      width: 100%; padding: 18px; border-radius: 18px; border: none;
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      color: white; font-weight: 800; margin-top: 20px;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
     }
+    .btn-main:active { transform: scale(0.97); }
 
     .hidden { display: none !important; }
-    .animate { animation: fadeIn 0.4s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -122,38 +144,41 @@
 
   <div id="loginPage">
     <div class="login-card animate">
-      <h1 style="font-size: 40px;">🛸</h1>
-      <h2 style="margin: 10px 0;">Pustaka Furina</h2>
-      <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 20px;">V3 Digital Library System</p>
+      <h1 style="font-size: 50px; margin-bottom: 10px;">🌊</h1>
+      <h2 style="font-weight: 800; font-size: 28px;">Pustaka Furina</h2>
+      <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 30px;">V3 Digital Library System</p>
+      
+      <input type="text" id="usernameInput" placeholder="Nama Pengguna">
       <input type="password" id="passcodeInput" placeholder="Kode Akses">
-      <button class="btn-main" onclick="handleLogin()">Masuk Ke Panel</button>
+      <button class="btn-main" onclick="handleLogin()">Masuk Sekarang</button>
     </div>
   </div>
 
   <div id="mainPage" class="hidden">
     <div class="header">
       <div class="top-bar">
-        <div id="roleBadge" style="font-size: 10px; font-weight: 800; color: var(--primary);">OFFLINE MODE</div>
+        <div id="roleBadge" style="letter-spacing: 1px; font-size: 10px; font-weight: 800; color: var(--primary); background: rgba(37,99,235,0.1); padding: 4px 10px; border-radius: 20px;">OFFLINE</div>
         <button class="theme-btn" onclick="toggleTheme()">🌓 Mode</button>
       </div>
-      <h2 id="welcomeText">Halo, Pelajar! 👋</h2>
-      <input type="text" id="searchInput" placeholder="Cari buku...">
+      <h2 id="welcomeText" style="font-weight: 800; font-size: 24px;">Halo! 👋</h2>
+      <input type="text" id="searchInput" placeholder="Cari materi belajar...">
     </div>
 
     <div class="content">
-      <div id="bookList" class="books-grid animate"></div>
+      <div id="bookList" class="books-grid"></div>
 
       <div id="kelasSection" class="hidden animate">
-        <div style="background: var(--card-bg); padding: 30px; border-radius: 28px; text-align: center; border: 1px solid rgba(148,163,184,0.1);">
+        <div style="background: var(--card-bg); padding: 40px 20px; border-radius: 32px; text-align: center; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);">
           <div id="guruView" class="hidden">
-            <p style="color: var(--text-soft);">Kode Kelas Aktif</p>
-            <h1 id="activeCode" style="font-size: 40px; margin: 20px 0; color: var(--primary); letter-spacing: 5px;">-----</h1>
-            <button class="btn-main" onclick="generateClassCode()">Perbarui Kode</button>
+            <p style="color: var(--text-soft); font-weight: 600;">Kode Ruang Kelas</p>
+            <h1 id="activeCode" style="font-size: 48px; margin: 20px 0; color: var(--primary); letter-spacing: 8px; font-weight: 800;">-----</h1>
+            <button class="btn-main" onclick="generateClassCode()">Buat Kode Baru</button>
           </div>
           <div id="muridView" class="hidden">
-            <h3>Gabung Ruang Kelas</h3>
-            <input type="text" id="inputClassCode" placeholder="Masukkan 5 Kode">
-            <button class="btn-main" onclick="joinClass()">Masuk Sekarang</button>
+            <h3 style="font-weight: 800; margin-bottom: 10px;">Gabung Kelas</h3>
+            <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 20px;">Masukkan kode dari guru untuk sinkronisasi</p>
+            <input type="text" id="inputClassCode" placeholder="Contoh: X7Z9K" style="text-align: center; letter-spacing: 4px;">
+            <button class="btn-main" onclick="joinClass()">Gabung Sekarang</button>
           </div>
         </div>
       </div>
@@ -183,10 +208,10 @@
       cursor.style.top = e.clientY + 'px';
     });
     document.addEventListener('mouseover', e => {
-      if (e.target.closest('.book-card') || e.target.closest('button')) cursor.classList.add('cursor-hover');
+      if (e.target.closest('.book-card') || e.target.closest('button') || e.target.closest('.nav-item')) cursor.classList.add('cursor-hover');
     });
     document.addEventListener('mouseout', e => {
-      if (e.target.closest('.book-card') || e.target.closest('button')) cursor.classList.remove('cursor-hover');
+      if (e.target.closest('.book-card') || e.target.closest('button') || e.target.closest('.nav-item')) cursor.classList.remove('cursor-hover');
     });
 
     // --- THEME LOGIC ---
@@ -199,23 +224,33 @@
 
     // --- CORE LOGIC ---
     function handleLogin() {
-      const val = document.getElementById("passcodeInput").value.trim().toUpperCase();
-      if (ACCESS_KEYS[val]) {
-        localStorage.setItem("user_role", ACCESS_KEYS[val]);
+      const userVal = document.getElementById("usernameInput").value.trim();
+      const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
+
+      if (userVal === "") { alert("Masukkan nama kamu!"); return; }
+
+      if (ACCESS_KEYS[passVal]) {
+        localStorage.setItem("user_role", ACCESS_KEYS[passVal]);
+        localStorage.setItem("user_name", userVal);
         initApp();
-      } else { alert("Kode Salah!"); }
+      } else { 
+        alert("Kode Akses Salah!"); 
+      }
     }
 
     function initApp() {
       const role = localStorage.getItem("user_role");
-      if(!role) return;
-      
+      const name = localStorage.getItem("user_name");
+      if(!role || !name) return;
+
       const theme = localStorage.getItem('theme');
       if(theme) document.body.setAttribute('data-theme', theme);
 
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
-      document.getElementById("welcomeText").innerText = `Halo, ${role}! 👋`;
+      document.getElementById("welcomeText").innerText = `Halo, ${name}! 👋`;
+      document.getElementById("roleBadge").innerText = `${role.toUpperCase()} MODE`;
+
       showSection('books');
       renderBooks("");
     }
@@ -227,8 +262,8 @@
         list.innerHTML += `
           <div class="book-card animate" onclick="window.open('books/${b.file}', '_blank')">
             <div class="book-cover" style="background: ${b.color}15; color: ${b.color};">${b.emoji}</div>
-            <div style="font-weight: 800; font-size: 14px;">${b.title}</div>
-            <div style="font-size: 10px; color: var(--text-soft);">Buka Materi PDF</div>
+            <div style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">${b.title}</div>
+            <div style="font-size: 11px; color: var(--text-soft); font-weight: 600;">Lihat Materi PDF</div>
           </div>`;
       });
     }
@@ -245,7 +280,9 @@
       const isGuru = localStorage.getItem("user_role") === "Guru";
       document.getElementById("guruView").classList.toggle("hidden", !isGuru);
       document.getElementById("muridView").classList.toggle("hidden", isGuru);
-      fetch(FIREBASE_URL).then(res => res.json()).then(data => { if(data) document.getElementById("activeCode").innerText = data; });
+      fetch(FIREBASE_URL).then(res => res.json()).then(data => { 
+        if(data) document.getElementById("activeCode").innerText = data; 
+      });
     }
 
     function generateClassCode() {
