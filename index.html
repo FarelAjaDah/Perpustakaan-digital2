@@ -5,35 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Pustaka Furina v3 - Modern Sync</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
+      /* Palette - Slate & Blue */
       --bg-body: #f8fafc;
       --card-bg: #ffffff;
-      --text-main: #1e293b;
+      --text-main: #0f172a;
       --text-soft: #64748b;
-      --primary: #334155; /* Warna slate yang lebih profesional */
-      --accent: #3b82f6;
+      --primary: #1e293b;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.08);
       --input-bg: #f1f5f9;
-      --glass-border: rgba(0, 0, 0, 0.05);
-      --nav-bg: rgba(30, 41, 59, 0.95);
+      --glass-border: rgba(15, 23, 42, 0.08);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.05);
+      --radius-xl: 24px;
+      --radius-2xl: 32px;
     }
 
     [data-theme="dark"] {
-      --bg-body: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f1f5f9;
+      --bg-body: #020617;
+      --card-bg: #0f172a;
+      --text-main: #f8fafc;
       --text-soft: #94a3b8;
-      --input-bg: #334155;
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --nav-bg: rgba(15, 23, 42, 0.9);
+      --input-bg: #1e293b;
+      --glass-border: rgba(255, 255, 255, 0.05);
+      --nav-bg: rgba(15, 23, 42, 0.85);
     }
 
     * { 
       box-sizing: border-box; 
       -webkit-tap-highlight-color: transparent; 
       margin: 0; padding: 0; 
-      transition: background 0.3s, color 0.3s, transform 0.2s ease; 
     }
 
     body { 
@@ -42,31 +47,48 @@
       color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
+      line-height: 1.5;
     }
 
     /* --- LOGIN PAGE --- */
-    #loginPage {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+   #loginPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: 
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+    var(--bg-body);
+}
 
-    .login-card {
-      background: var(--card-bg);
-      padding: 40px 30px;
-      border-radius: 32px;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.03);
-    }
+  .login-card {
+  background: var(--card-bg);
+  padding: 48px 32px;
+  border-radius: 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
 
-    .login-card h1 { font-size: 48px; margin-bottom: 10px; }
-    .login-card h2 { font-weight: 800; font-size: 24px; margin-bottom: 8px; color: var(--primary); }
-    .login-card p { color: var(--text-soft); font-size: 14px; margin-bottom: 30px; }
+    .login-card h1 { font-size: 56px; margin-bottom: 16px; }
+    .login-card h2 { font-weight: 800; font-size: 28px; letter-spacing: -0.5px; }
+    .login-card p { color: var(--text-soft); font-size: 14px; margin-bottom: 32px; }
+    .login-header {
+  position: relative;
+  z-index: 1;
+}
+
+.login-header h1 { 
+  font-size: 64px; 
+  margin-bottom: 8px;
+  filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+}
 
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label {
@@ -80,202 +102,304 @@
       letter-spacing: 0.5px;
     }
 
-    input {
+    .input-group input {
+  background: var(--input-bg);
+  border: 2px solid transparent;
+  padding: 18px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+    input, select {
       width: 100%;
       padding: 16px 20px;
-      border-radius: 16px;
-      border: 1px solid transparent;
+      border-radius: 18px;
+      border: 2px solid transparent;
       background: var(--input-bg);
       color: var(--text-main);
       font-family: inherit;
-      font-size: 15px;
+      font-size: 16px;
+      transition: all 0.2s ease;
     }
 
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      background: var(--card-bg);
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    }
+   .input-group input:focus {
+  border-color: var(--accent);
+  background: var(--card-bg);
+  transform: translateY(-2px);
+}
 
     /* --- BUTTONS --- */
     .btn-main {
       width: 100%;
       padding: 16px;
-      border-radius: 16px;
+      border-radius: 18px;
       border: none;
       background: var(--primary);
       color: white;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 16px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .btn-main:active { transform: scale(0.98); }
+    .btn-login {
+  background: linear-gradient(135deg, var(--primary) 0%, #334155 100%);
+  box-shadow: 0 10px 20px -5px rgba(30, 41, 59, 0.3);
+  margin-top: 10px;
+}
 
-    /* --- MAIN APP LAYOUT --- */
+    .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .btn-main:active { transform: scale(0.97); }
+
+    /* --- LAYOUT --- */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
     .header {
       position: sticky; top: 0; z-index: 100;
-      background: var(--bg-body);
-      padding: 25px 24px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      padding: 24px 0;
+      margin-bottom: 24px;
       border-bottom: 1px solid var(--glass-border);
     }
 
-    .content { padding: 24px 24px 140px; max-width: 600px; margin: auto; }
-
-    .books-grid { 
-      display: grid; 
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 16px; 
+    /* --- BOOKS GRID --- */
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      padding-bottom: 120px;
     }
-    
+
     .book-card {
       background: var(--card-bg);
-      border-radius: 24px;
+      border-radius: var(--radius-xl);
       padding: 24px 16px;
       border: 1px solid var(--glass-border);
       text-decoration: none;
       color: inherit;
       text-align: center;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .book-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent);
+      box-shadow: var(--shadow-lg);
     }
 
     .book-cover {
-      width: 60px; height: 60px; margin: 0 auto 12px;
-      border-radius: 18px; display: flex; align-items: center; justify-content: center; 
+      width: 64px; height: 64px; margin: 0 auto 16px;
+      border-radius: 20px; display: flex; align-items: center; justify-content: center; 
       font-size: 28px;
     }
 
-    /* --- NAV BAR --- */
+    /* --- NAVIGATION --- */
     .nav-bar {
-      position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-      width: 90%; max-width: 400px; 
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 48px); max-width: 400px; 
       background: var(--nav-bg);
       padding: 8px; border-radius: 24px; 
       display: flex; z-index: 1000;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
+
     .nav-item {
-      flex: 1; padding: 12px; text-align: center; color: #94a3b8;
+      flex: 1; padding: 12px; text-align: center; color: var(--text-soft);
       font-weight: 700; font-size: 13px; border-radius: 18px; cursor: pointer;
     }
-    .nav-item.active { background: #ffffff; color: #0f172a; }
-    [data-theme="dark"] .nav-item.active { background: var(--accent); color: white; }
+
+    .nav-item.active { background: var(--accent); color: white; }
+
+    /* --- CATEGORIES --- */
+    .category-container {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding: 16px 0; scrollbar-width: none;
+    }
+    .category-container::-webkit-scrollbar { display: none; }
+    
+    .cat-btn {
+      padding: 8px 20px; border-radius: 50px;
+      background: var(--card-bg); border: 1px solid var(--glass-border);
+      color: var(--text-soft); font-size: 13px; font-weight: 700;
+      white-space: nowrap; cursor: pointer;
+    }
+
+    .cat-btn.active-cat { background: var(--primary); color: white; }
+
+    /* --- SYNC SECTION --- */
+    .sync-card {
+      background: var(--card-bg);
+      padding: 32px;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--glass-border);
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    #activeCode {
+      font-family: 'Monaco', monospace;
+      letter-spacing: 4px;
+      background: var(--accent-soft);
+      padding: 12px 24px;
+      border-radius: 16px;
+      display: inline-block;
+      margin: 20px 0;
+      color: var(--accent);
+      font-weight: 800;
+    }
 
     /* --- UTILS --- */
     .hidden { display: none !important; }
-    .animate { animation: fadeInUp 0.5s ease both; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeInUp 0.5s ease-out both; }
+    @keyframes fadeInUp { 
+      from { opacity: 0; transform: translateY(20px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
 
     #roleBadge {
-      font-size: 10px; font-weight: 800; 
-      color: var(--accent); 
-      background: rgba(59, 130, 246, 0.1); 
-      padding: 4px 10px; border-radius: 8px;
+      font-size: 10px; font-weight: 800; color: var(--accent); 
+      background: var(--accent-soft); padding: 4px 12px; border-radius: 50px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    @media (min-width: 768px) {
+      .books-grid { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
+
 <body data-theme="light">
 
   <div id="loginPage">
-    <div class="login-card animate">
-      <h1>📖</h1>
-      <h2>Pustaka Digital</h2>
-      <p>Akses materi belajar dengan Susah</p>
-      
-      <div class="input-group">
-        <label>Nama Pengguna</label>
-        <input type="text" id="usernameInput" placeholder="Contoh: Farel Sehat">
-      </div>
-
-      <div class="input-group" style="margin-bottom: 25px;">
-        <label>Kode Akses</label>
-        <input type="password" id="passcodeInput" placeholder="masukkan kode akses..." style="text-transform: uppercase;">
-      </div>
-
-      <button class="btn-main" onclick="handleLogin()">Masuk Sekarang</button>
+  <div class="login-card animate">
+    <div class="login-header">
+      <h1>📖</h1> <h2 style="letter-spacing: -1px; font-weight: 800; color: var(--text-main);">Pustaka Furina</h2>
+      <p style="margin-bottom: 32px;">Silakan masuk untuk memulai belajar</p>
     </div>
+    
+    <div class="input-group">
+      <label>Nama Pengguna</label>
+      <input type="text" id="usernameInput" placeholder="Masukkan nama pengguna" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+      <label>Kode Akses</label>
+      <input type="password" id="passcodeInput" placeholder="Masukkan kode akses..." maxlength="10">
+    </div>
+    
+    <button class="btn-main btn-login" onclick="handleLogin()">
+      Masuk ke Pustaka 
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </button>
+    
+    <p style="font-size: 11px; margin-top: 24px; color: var(--text-soft); font-weight: 600;">
+      V3.0 • Secure Connection Active
+    </p>
   </div>
+</div>
 
   <div id="mainPage" class="hidden">
-    <div class="header">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span id="roleBadge">SYSTEM ONLINE</span>
-        <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-weight: 700; color: var(--text-soft); font-size: 12px;">🌓 Tema</button>
+    <header class="header">
+      <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <span id="roleBadge">System Online</span>
+          <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-size: 20px;">🌓</button>
+        </div>
+        <h2 id="welcomeText" style="font-size: 24px; font-weight: 800;">Halo! 👋</h2>
+        <p id="bookCounter" style="color: var(--text-soft); font-size: 13px; font-weight: 600;">Memuat koleksi...</p>
+        
+        <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)" style="margin-top: 20px;">
+        
+        <div class="category-container">
+          <div class="cat-btn active-cat" onclick="setCategory('Semua')">Semua</div>
+          <div class="cat-btn" onclick="setCategory('Pelajaran')">📚 Pelajaran</div>
+          <div class="cat-btn" onclick="setCategory('Komik')">🎨 Komik</div>
+          <div class="cat-btn" onclick="setCategory('Novel')">📖 Novel</div>
+        </div>
       </div>
-      <h2 id="welcomeText" style="font-weight: 800; letter-spacing: -0.5px; font-size: 24px;">Halo! 👋</h2>
-      <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)" 
-             style="margin-top: 15px;">
-    </div>
+    </header>
 
-    <div class="content">
+    <main class="container">
       <div id="bookList" class="books-grid"></div>
 
       <div id="kelasSection" class="hidden animate">
-        <div style="background: var(--card-bg); padding: 30px 20px; border-radius: 28px; text-align: center; border: 1px solid var(--glass-border);">
-            
-            <div id="guruView" class="hidden">
-              <select id="pilihBuku" style="margin-bottom:10px; padding:10px; width:100%;">
-              <option value="matematika.pdf">Matematika</option>
-              <option value="sejarah.pdf">Sejarah</option>
-                <option value="biologi.pdf">Biologi</option>
-          </select>
-                <p style="color: var(--text-soft); font-weight: 600; font-size: 13px;">KODE KELAS AKTIF</p>
-                <h1 id="activeCode" style="font-size: 42px; color: var(--accent); letter-spacing: 4px; margin: 10px 0;">-----</h1>
-                <button onclick="tambahSoalKuis()" style="background:#10b981; color:white; border:none; padding:14px; border-radius:14px; font-weight:700; width:100%; margin-bottom:12px; cursor:pointer;">➕ Tambah Soal Kuis</button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button class="btn-main" onclick="updateClassStatus('Quiz')" style="background: #ef4444;">📝 Kuis</button>
-                    <button class="btn-main" onclick="mulaiPresentasi()">📺 Slide</button>
-                </div>
-                <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 10px;">Akhiri Sesi</button>
-            </div>
+        <div class="sync-card">
+          <div id="guruView" class="hidden">
+            <h3 style="margin-bottom: 12px;">Panel Guru</h3>
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-soft);">MATERI PRESENTASI</label>
+            <select id="pilihBuku" style="margin: 8px 0 20px;">
+                <option value="matematika.pdf">📐 Matematika</option>
+                <option value="sejarah.pdf">📜 Sejarah</option>
+                <option value="biologi.pdf">🧬 Biologi</option>
+            </select>
 
-            <div id="muridView" class="hidden">
-                <div id="joinArea">
-                    <h3 style="margin-bottom: 15px;">Gabung Kelas Live</h3>
-                    <input type="text" id="inputClassCode" placeholder="Kode dari Guru" style="text-align: center; margin-bottom: 15px; text-transform: uppercase;">
-                    <button class="btn-main" onclick="joinClass()">Masuk Kelas</button>
+            <p style="font-size: 11px; font-weight: 800; color: var(--text-soft);">KODE KELAS</p>
+            <div id="activeCode">-----</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button class="btn-main" onclick="updateClassStatus('Quiz')" style="background: #ef4444;">Kuis</button>
+                <button class="btn-main" onclick="mulaiPresentasi()" style="background: var(--accent);">Slide</button>
+            </div>
+            <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 12px;">Akhiri Sesi</button>
+          </div>
+
+          <div id="muridView" class="hidden">
+            <div id="joinArea">
+                <h3>Gabung Kelas</h3>
+                <p style="margin-bottom: 20px;">Masukkan kode dari gurumu</p>
+                <input type="text" id="inputClassCode" placeholder="KODE" style="text-align: center; margin-bottom: 20px; font-weight: 800; letter-spacing: 4px;">
+                <button class="btn-main" onclick="joinClass()">Masuk</button>
+            </div>
+            <div id="liveClassArea" class="hidden">
+                <div style="background: var(--accent); color: white; padding: 16px; border-radius: 16px; margin-bottom: 20px;">
+                    <p id="currentStatus" style="font-weight: 800; font-size: 12px;">MENUNGGU GURU...</p>
                 </div>
-                <div id="liveClassArea" class="hidden">
-                    <div style="background: var(--accent); color: white; padding: 15px; border-radius: 16px; margin-bottom: 20px;">
-                        <h2 id="currentStatus" style="font-size: 18px;">MENUNGGU...</h2>
-                    </div>
-                    <div id="classContent" style="padding: 30px 20px; border: 2px dashed var(--glass-border); border-radius: 20px; color: var(--text-soft);">
-                        Menunggu instruksi Guru...
-                    </div>
+                <div id="classContent" style="min-height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 20px; color: var(--text-soft);">
+                    Menunggu konten...
                 </div>
             </div>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <div class="nav-bar">
+    <nav class="nav-bar">
       <div class="nav-item active" id="nav-books" onclick="showSection('books')">Koleksi</div>
       <div class="nav-item" id="nav-kelas" onclick="showSection('kelas')">Sync</div>
       <div class="nav-item" onclick="logout()" style="color: #ef4444;">Keluar</div>
-    </div>
+    </nav>
   </div>
 
   <script>
     const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
     const ACCESS_KEYS = { "AKUGURU": "Guru", "MURID": "Murid" };
-    
+
     const books = [
-      { title: "Matematika", file: "matematika.pdf", emoji: "📐", color: "#3b82f6" },
-      { title: "Sejarah", file: "sejarah.pdf", emoji: "📜", color: "#f59e0b" },
-      { title: "Biologi", file: "biologi.pdf", emoji: "🌿", color: "#10b981" },
-      { title: "Fisika", file: "fisika.pdf", emoji: "⚛️", color: "#ef4444" },
-      { title: "Sains", file: "sains.pdf", emoji: "🔬", color: "#8b5cf6" }
+      { title: "Matematika", file: "matematika.pdf", emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
+      { title: "Sejarah", file: "sejarah.pdf", emoji: "📜", color: "#f59e0b", category: "Pelajaran" },
+      { title: "Biologi", file: "biologi.pdf", emoji: "🧬", color: "#10b981", category: "Pelajaran" },
+      { title: "One Piece", file: "op.pdf", emoji: "🏴‍☠️", color: "#ef4444", category: "Komik" },
+      { title: "Solo Leveling", file: "sl.pdf", emoji: "⚔️", color: "#6366f1", category: "Komik" },
+      { title: "Laskar Pelangi", file: "lp.pdf", emoji: "🌈", color: "#10b981", category: "Novel" },
+      { title: "Harry Potter", file: "hp.pdf", emoji: "⚡", color: "#475569", category: "Novel" }
     ];
 
-    let currentQuizData = [];
+    let currentCategory = "Semua";
     let syncInterval;
-
-    function mulaiPresentasi() {
-  const file = document.getElementById("pilihBuku").value;
-  updateClassStatus("Presentasi", file);
-}
 
     function handleLogin() {
       const userVal = document.getElementById("usernameInput").value.trim();
@@ -283,42 +407,46 @@
       
       if (ACCESS_KEYS[passVal]) {
         localStorage.setItem("user_role", ACCESS_KEYS[passVal]);
-        localStorage.setItem("user_name", userVal || "Pelajar");
+        localStorage.setItem("user_name", userVal || "User");
         initApp();
-      } else { 
-        alert("Kode Akses Salah!"); 
+      } else {
+        alert("Kode akses salah atau tidak terdaftar!");
       }
     }
 
     function initApp() {
       const role = localStorage.getItem("user_role");
-      const name = localStorage.getItem("user_name");
       if(!role) return;
 
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
-      document.getElementById("roleBadge").innerText = role.toUpperCase() + " ONLINE";
-      document.getElementById("welcomeText").innerText = `Halo, ${name}! 👋`;
+      document.getElementById("roleBadge").innerText = role + " Online";
+      document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
       renderBooks("");
     }
 
     function renderBooks(kw) {
       const list = document.getElementById("bookList");
-      list.innerHTML = "";
-      const filtered = books.filter(b => b.title.toLowerCase().includes(kw.toLowerCase()));
-      
-      if(filtered.length === 0) {
-        list.innerHTML = `<p style="grid-column: span 2; color: var(--text-soft); padding: 20px;">Materi tidak ditemukan...</p>`;
-        return;
-      }
-
-      filtered.forEach(b => {
-        list.innerHTML += `
-          <div class="book-card animate" onclick="window.open('books/${b.file}', '_blank')">
-            <div class="book-cover" style="background: ${b.color}15; color: ${b.color};">${b.emoji}</div>
-            <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">${b.title}</div>
-          </div>`;
+      const filtered = books.filter(b => {
+        const matchKeyword = b.title.toLowerCase().includes(kw.toLowerCase());
+        const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
+        return matchKeyword && matchCategory;
       });
+
+      document.getElementById("bookCounter").innerText = `${filtered.length} buku tersedia`;
+      list.innerHTML = filtered.map(b => `
+        <div class="book-card animate" onclick="window.open('books/${b.file}', '_blank')">
+          <div class="book-cover" style="background: ${b.color}12; color: ${b.color};">${b.emoji}</div>
+          <div style="font-weight: 700; font-size: 14px;">${b.title}</div>
+          <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase; margin-top: 4px;">${b.category}</div>
+        </div>
+      `).join('');
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active-cat', btn.innerText.includes(cat)));
+      renderBooks(document.getElementById("searchInput").value);
     }
 
     function showSection(type) {
@@ -333,89 +461,58 @@
       const isGuru = localStorage.getItem("user_role") === "Guru";
       document.getElementById("guruView").classList.toggle("hidden", !isGuru);
       document.getElementById("muridView").classList.toggle("hidden", isGuru);
-      
-      fetch(FIREBASE_URL).then(res => res.json()).then(data => { 
-        if(data && data.code) document.getElementById("activeCode").innerText = data.code; 
+    }
+
+    function updateClassStatus(tipe, file = null) {
+      let code = document.getElementById("activeCode").innerText;
+      if (code === "-----" || tipe === 'Selesai') {
+        code = (tipe === 'Selesai') ? "-----" : Math.random().toString(36).substring(2, 7).toUpperCase();
+      }
+
+      fetch(FIREBASE_URL, { 
+        method: 'PUT', 
+        body: JSON.stringify({ code, status: tipe, file }) 
+      }).then(() => {
+        document.getElementById("activeCode").innerText = code;
       });
     }
 
-    function tambahSoalKuis() {
-        const tanya = prompt("Pertanyaan:");
-        if(!tanya) return;
-        const a = prompt("Opsi A:");
-        const b = prompt("Opsi B:");
-        currentQuizData.push({ soal: tanya, opsi: {A:a, B:b} });
-        alert("Soal ditambahkan!");
+    function mulaiPresentasi() {
+      updateClassStatus("Presentasi", document.getElementById("pilihBuku").value);
     }
 
-  function updateClassStatus(tipe, file = null) {
-  let currentCode = document.getElementById("activeCode").innerText;
-  
-
-  if (currentCode === "-----" || tipe === 'Selesai') {
-    currentCode = (tipe === 'Selesai') ? "-----" : Math.random().toString(36).substring(2, 7).toUpperCase();
-  }
-
-  let payload = { 
-    code: currentCode, 
-    status: tipe,
-    file: file // ⬅️ penting
-  };
-
-  if(tipe === 'Quiz') payload.questions = currentQuizData;
-
-  fetch(FIREBASE_URL, {
-    method: 'PUT',
-    body: JSON.stringify(payload)
-  }).then(() => {
-    document.getElementById("activeCode").innerText = currentCode;
-  });
-}
     function joinClass() {
       const input = document.getElementById("inputClassCode").value.toUpperCase();
       fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-        if (input === data.code && data.code !== "-----") {
+        if (input === data.code) {
           document.getElementById("joinArea").classList.add("hidden");
           document.getElementById("liveClassArea").classList.remove("hidden");
           syncInterval = setInterval(syncWithGuru, 3000);
-        } else { 
-          alert("Kode kelas salah atau sedang tidak aktif."); 
-        }
+        } else { alert("Kode tidak valid!"); }
       });
     }
 
     function syncWithGuru() {
-       fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-    document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
-
-    if(data.status === "Selesai") {
-      document.getElementById("classContent").innerHTML = "Sesi telah berakhir oleh Guru.";
-      clearInterval(syncInterval);
-
-    } else if(data.status === "Quiz") {
-      document.getElementById("classContent").innerHTML = "Guru memulai Kuis!";
-
-    } else if(data.status === "Presentasi") {   // ⬅️ TAMBAH DI SINI
-      document.getElementById("classContent").innerHTML = `
-        <iframe src="books/${data.file}" width="100%" height="400px"></iframe>
-      `;
-
-    } else {
-      document.getElementById("classContent").innerHTML = "Materi sedang berlangsung...";
+      fetch(FIREBASE_URL).then(res => res.json()).then(data => {
+        document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
+        const container = document.getElementById("classContent");
+        if(data.status === "Presentasi") {
+          container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>`;
+        } else if(data.status === "Selesai") {
+          container.innerText = "Sesi Berakhir";
+          clearInterval(syncInterval);
+        }
+      });
     }
-  });
-}
+
     function toggleTheme() {
       const body = document.body;
       const current = body.getAttribute('data-theme');
       body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
     }
 
-    function logout() { 
-      if(confirm("Keluar dari aplikasi?")) {
-        localStorage.clear(); 
-        location.reload(); 
-      }
+    function logout() {
+      if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
     }
 
     window.onload = initApp;
