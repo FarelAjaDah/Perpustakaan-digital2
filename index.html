@@ -286,8 +286,13 @@
 
   <div id="loginPage">
   <div class="login-card animate">
+    <div style="position: absolute; top: 20px; right: 20px;">
+      <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-size: 20px;">🌓</button>
+    </div>
+
     <div class="login-header">
-      <h1>📖</h1> <h2 style="letter-spacing: -1px; font-weight: 800; color: var(--text-main);">Pustaka Furina</h2>
+      <h1>📖</h1> 
+      <h2 style="letter-spacing: -1px; font-weight: 800; color: var(--text-main);">Pustaka Digital</h2>
       <p style="margin-bottom: 32px;">Silakan masuk untuk memulai belajar</p>
     </div>
     
@@ -307,7 +312,7 @@
     </button>
     
     <p style="font-size: 11px; margin-top: 24px; color: var(--text-soft); font-weight: 600;">
-      V3.0 • Secure Connection Active
+      V3.1 • Secure Connection Active
     </p>
   </div>
 </div>
@@ -339,23 +344,43 @@
       <div id="kelasSection" class="hidden animate">
         <div class="sync-card">
           <div id="guruView" class="hidden">
-            <h3 style="margin-bottom: 12px;">Panel Guru</h3>
-            <label style="font-size: 12px; font-weight: 700; color: var(--text-soft);">MATERI PRESENTASI</label>
-            <select id="pilihBuku" style="margin: 8px 0 20px;">
-                <option value="matematika.pdf">📐 Matematika</option>
-                <option value="sejarah.pdf">📜 Sejarah</option>
-                <option value="biologi.pdf">🧬 Biologi</option>
+    <h3 style="margin-bottom: 12px;">Panel Guru</h3>
+    
+    <label style="font-size: 12px; font-weight: 700; color: var(--text-soft);">MATERI PRESENTASI</label>
+    <select id="pilihBuku" style="margin: 8px 0 20px;">
+        <option value="matematika.pdf">📐 Matematika</option>
+        <option value="sejarah.pdf">📜 Sejarah</option>
+        <option value="biologi.pdf">🧬 Biologi</option>
+    </select>
+
+    <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+        <label style="font-size: 11px; font-weight: 800; color: var(--accent);">MENU KUIS</label>
+        <select id="tipeQuiz" onchange="toggleQuizInput()" style="margin: 8px 0;">
+            <option value="manual">📝 Buat Kuis Manual (Teks)</option>
+            <option value="pdf">📄 Gunakan PDF Soal</option>
+        </select>
+        
+        <div id="inputManual">
+            <textarea id="quizText" placeholder="Ketik soal kuis di sini..." style="width:100%; height:80px; border-radius:12px; padding:10px; border:1px solid var(--glass-border); font-family:inherit;"></textarea>
+        </div>
+        
+        <div id="inputPdf" class="hidden">
+            <select id="pilihPdfQuiz" style="margin-top:5px;">
+                <option value="quiz_matematika.pdf">Soal Matematika.pdf</option>
+                <option value="quiz_umum.pdf">Soal Umum.pdf</option>
             </select>
+        </div>
+    </div>
 
-            <p style="font-size: 11px; font-weight: 800; color: var(--text-soft);">KODE KELAS</p>
-            <div id="activeCode">-----</div>
+    <p style="font-size: 11px; font-weight: 800; color: var(--text-soft);">KODE KELAS</p>
+    <div id="activeCode" style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom:15px;">-----</div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <button class="btn-main" onclick="updateClassStatus('Quiz')" style="background: #ef4444;">Kuis</button>
-                <button class="btn-main" onclick="mulaiPresentasi()" style="background: var(--accent);">Slide</button>
-            </div>
-            <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 12px;">Akhiri Sesi</button>
-          </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn-main" onclick="mulaiQuiz()" style="background: #ef4444;">Kirim Kuis</button>
+        <button class="btn-main" onclick="mulaiPresentasi()" style="background: var(--accent);">Mulai Slide</button>
+    </div>
+    <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 12px;">Akhiri Sesi</button>
+</div>
 
           <div id="muridView" class="hidden">
             <div id="joinArea">
@@ -379,9 +404,10 @@
 
     <nav class="nav-bar">
       <div class="nav-item active" id="nav-books" onclick="showSection('books')">Koleksi</div>
-      <div class="nav-item" id="nav-kelas" onclick="showSection('kelas')">Sync</div>
+      <div class="nav-item" id="nav-kelas" onclick="showSection('kelas')">Ruang Kelas</div>
       <div class="nav-item" onclick="logout()" style="color: #ef4444;">Keluar</div>
     </nav>
+    <div class="category-container animate"></div>
   </div>
 
   <script>
@@ -392,10 +418,18 @@
       { title: "Matematika", file: "matematika.pdf", emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
       { title: "Sejarah", file: "sejarah.pdf", emoji: "📜", color: "#f59e0b", category: "Pelajaran" },
       { title: "Biologi", file: "biologi.pdf", emoji: "🧬", color: "#10b981", category: "Pelajaran" },
+      {title: "Bahasa Jepang", file: "jp.pdf", emoji: "🗾", color: "#ef4444", category: "Pelajaran" },
+      {title: "Fisika", file: "fisika.pdf", emoji: "🔬", color: "#6366f1", category: "Pelajaran" },
+      {title: "Kimia", file: "kimia.pdf", emoji: "⚗️", color: "#f97316", category: "Pelajaran" },
       { title: "One Piece", file: "op.pdf", emoji: "🏴‍☠️", color: "#ef4444", category: "Komik" },
       { title: "Solo Leveling", file: "sl.pdf", emoji: "⚔️", color: "#6366f1", category: "Komik" },
       { title: "Laskar Pelangi", file: "lp.pdf", emoji: "🌈", color: "#10b981", category: "Novel" },
-      { title: "Harry Potter", file: "hp.pdf", emoji: "⚡", color: "#475569", category: "Novel" }
+      { title: "Harry Potter", file: "hp.pdf", emoji: "⚡", color: "#475569", category: "Novel" },
+      { title: "laut bercerita", file: "laut.pdf", emoji: "🌊", color: "#3b82f6", category: "Novel" },
+      {title: "Dilan 1990", file: "dilan.pdf", emoji: "🏍️", color: "#f59e0b", category: "Novel" },
+      {title: "detective conan", file: "conan.pdf", emoji: "🕵️‍♂️", color: "#10b981", category: "Komik" },
+      {title: "Kubo wont let me be invisible", file: "kubo.pdf", emoji: "👻", color: "#ef4444", category: "Novel" },
+      {title: "Stop Overthinking", file: "stop.pdf", emoji: "🧠", color: "#6366f1", category: "Novel" },
     ];
 
     let currentCategory = "Semua";
@@ -449,13 +483,23 @@
       renderBooks(document.getElementById("searchInput").value);
     }
 
-    function showSection(type) {
-      document.getElementById("bookList").classList.toggle("hidden", type !== 'books');
-      document.getElementById("kelasSection").classList.toggle("hidden", type !== 'kelas');
-      document.getElementById("nav-books").classList.toggle("active", type === 'books');
-      document.getElementById("nav-kelas").classList.toggle("active", type === 'kelas');
-      if(type === 'kelas') setupKelasUI();
-    }
+   function showSection(type) {
+  // Sembunyikan/Tampilkan daftar buku dan bagian kelas
+  document.getElementById("bookList").classList.toggle("hidden", type !== 'books');
+  document.getElementById("kelasSection").classList.toggle("hidden", type !== 'kelas');
+  
+  // Fitur Baru: Sembunyikan kategori & search bar jika masuk ke menu 'kelas' (Sync)
+  const isBooks = type === 'books';
+  document.querySelector(".category-container").classList.toggle("hidden", !isBooks);
+  document.getElementById("searchInput").classList.toggle("hidden", !isBooks);
+  document.getElementById("bookCounter").classList.toggle("hidden", !isBooks);
+
+  // Update status aktif pada navbar
+  document.getElementById("nav-books").classList.toggle("active", type === 'books');
+  document.getElementById("nav-kelas").classList.toggle("active", type === 'kelas');
+  
+  if(type === 'kelas') setupKelasUI();
+}
 
     function setupKelasUI() {
       const isGuru = localStorage.getItem("user_role") === "Guru";
@@ -505,11 +549,88 @@
       });
     }
 
-    function toggleTheme() {
-      const body = document.body;
-      const current = body.getAttribute('data-theme');
-      body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    // Fungsi untuk ganti tampilan input kuis di Guru
+function toggleQuizInput() {
+    const tipe = document.getElementById("tipeQuiz").value;
+    document.getElementById("inputManual").classList.toggle("hidden", tipe !== 'manual');
+    document.getElementById("inputPdf").classList.toggle("hidden", tipe !== 'pdf');
+}
+
+// Fungsi Guru mengirim kuis
+function mulaiQuiz() {
+    const tipe = document.getElementById("tipeQuiz").value;
+    let kontenKuis = "";
+    
+    if(tipe === 'manual') {
+        kontenKuis = document.getElementById("quizText").value;
+        if(!kontenKuis) return alert("Isi soal kuis dulu!");
+    } else {
+        kontenKuis = document.getElementById("pilihPdfQuiz").value;
     }
+
+    updateClassStatus("Quiz", kontenKuis);
+    alert("Kuis berhasil dikirim ke murid!");
+}
+
+// Update fungsi syncWithGuru (POV Murid) agar bisa menampilkan teks atau PDF
+function syncWithGuru() {
+    fetch(FIREBASE_URL).then(res => res.json()).then(data => {
+        document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
+        const container = document.getElementById("classContent");
+        
+        if(data.status === "Presentasi") {
+            container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>`;
+        } 
+        else if(data.status === "Quiz") {
+            // Cek apakah konten kuis berupa PDF atau Teks Manual
+            if(data.file.endsWith('.pdf')) {
+                container.innerHTML = `
+                    <div style="width:100%; text-align:left;">
+                        <p style="font-weight:bold; margin-bottom:10px;">📝 Kerjakan Soal PDF Berikut:</p>
+                        <iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>
+                    </div>`;
+            } else {
+                container.innerHTML = `
+                    <div style="padding:20px; background:white; border-radius:15px; width:100%; text-align:left; box-shadow:var(--shadow-sm);">
+                        <p style="font-weight:800; color:var(--accent); margin-bottom:10px;">📝 SOAL KUIS:</p>
+                        <p style="font-size:16px; white-space: pre-wrap;">${data.file}</p>
+                        <hr style="margin:15px 0; opacity:0.1;">
+                        <textarea placeholder="Tulis jawabanmu di sini..." style="width:100%; height:100px; border-radius:10px; padding:10px; border:1px solid #ddd;"></textarea>
+                        <button class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="alert('Jawaban terkirim!')">Kirim Jawaban</button>
+                    </div>`;
+            }
+        } 
+        else if(data.status === "Selesai") {
+            container.innerText = "Sesi Berakhir";
+            clearInterval(syncInterval);
+        }
+    });
+}
+
+    function toggleTheme() {
+  const body = document.body;
+  const current = body.getAttribute('data-theme');
+  const newTheme = current === 'dark' ? 'light' : 'dark';
+  
+  body.setAttribute('data-theme', newTheme);
+  
+  // Opsional: Simpan pilihan tema di localStorage agar saat di-refresh tidak balik lagi
+  localStorage.setItem("theme", newTheme);
+}
+
+// Tambahkan ini di dalam fungsi initApp agar tema yang dipilih tersimpan otomatis
+function applySavedTheme() {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme) {
+    document.body.setAttribute('data-theme', savedTheme);
+  }
+}
+
+// Panggil fungsi applySavedTheme di window.onload
+window.onload = () => {
+  applySavedTheme();
+  initApp();
+};
 
     function logout() {
       if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
