@@ -250,6 +250,57 @@
       margin: 0 auto;
     }
 
+    .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 10000;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    display: none;
+} 
+    .bottom-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bottom-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    padding: 32px 24px;
+    z-index: 2001;
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    box-shadow: 0 -10px 25px rgba(0,0,0,0.1);
+}
+
+.bottom-sheet.active { bottom: 0; }
+.bottom-sheet-overlay.active { display: block; opacity: 1; }
+
+.sheet-handle {
+    width: 40px;
+    height: 5px;
+    background: var(--glass-border);
+    border-radius: 10px;
+    margin: -15px auto 20px;
+}
+
     #activeCode {
       font-family: 'Monaco', monospace;
       letter-spacing: 4px;
@@ -320,6 +371,23 @@
   <div id="mainPage" class="hidden">
     <header class="header">
       <div class="container">
+        <div id="devSandbox" class="hidden animate" style="padding: 10px;">
+    <h3 style="text-align: center; margin-bottom: 20px;">🛠️ Developer Sandbox</h3>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 2px solid #ef4444;">
+            <p style="font-weight: 800; color: #ef4444; font-size: 10px; margin-bottom: 10px;">POV GURU</p>
+            <div id="simulasiGuru">
+                </div>
+        </div>
+
+        <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 2px solid #2563eb;">
+            <p style="font-weight: 800; color: #2563eb; font-size: 10px; margin-bottom: 10px;">POV MURID</p>
+            <div id="simulasiMurid">
+                </div>
+        </div>
+    </div>
+</div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <span id="roleBadge">System Online</span>
           <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-size: 20px;">🌓</button>
@@ -626,6 +694,154 @@ function applySavedTheme() {
   }
 }
 
+function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    
+    toast.style.display = "block";
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+    }, 2000);
+}
+// Ganti fungsi alert bawaan dengan Toast yang lebih cantik
+function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.innerText = msg;
+    toast.style.display = "block";
+    setTimeout(() => { toast.style.display = "none"; }, 2500);
+}
+
+// Fungsi untuk menampilkan Detail Buku (Bottom Sheet)
+function openBookDetails(title, file, emoji, color) {
+    // Isi konten sheet
+    document.getElementById("sheetTitle").innerText = title;
+    document.getElementById("sheetEmoji").innerText = emoji;
+    document.getElementById("sheetCategory").innerText = "Koleksi " + (books.find(b => b.title === title).category);
+    
+    // Set tombol baca
+    document.getElementById("btnReadNow").onclick = () => {
+        closeSheet();
+        // Simpan progress lanjut membaca
+        localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
+        checkLastRead();
+        window.open(`books/${file}`, '_blank');
+    };
+
+    // Munculkan sheet
+    document.getElementById("sheetOverlay").classList.add("active");
+    document.getElementById("bottomSheet").classList.add("active");
+}
+
+function closeSheet() {
+    document.getElementById("sheetOverlay").classList.remove("active");
+    document.getElementById("bottomSheet").classList.remove("active");
+}
+
+// Update fungsi renderBooks agar memanggil detail, bukan langsung buka file
+function renderBooks(kw) {
+    const list = document.getElementById("bookList");
+    const keyword = kw.toLowerCase(); // Ubah input jadi huruf kecil
+
+   const filtered = books.filter(b => {
+    // Mencari apakah keyword ada di Judul ATAU di Kategori
+    const matchKeyword = b.title.toLowerCase().includes(keyword) || 
+                         b.category.toLowerCase().includes(keyword);
+    
+    // Mengecek filter tombol kategori yang sedang aktif
+    const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
+    
+    return matchKeyword && matchCategory;
+});
+    document.getElementById("bookCounter").innerText = `${filtered.length} buku tersedia`;
+    list.innerHTML = filtered.map(b => `
+        <div class="book-card animate" onclick="openBookDetails('${b.title}', '${b.file}', '${b.emoji}', '${b.color}')">
+            <div class="book-cover" style="background: ${b.color}12; color: ${b.color};">${b.emoji}</div>
+            <div style="font-weight: 700; font-size: 14px;">${b.title}</div>
+            <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase; margin-top: 4px;">${b.category}</div>
+        </div>
+    `).join('');
+}
+
+// Contoh penggunaan showToast pada login
+function handleLogin() {
+    const userVal = document.getElementById("usernameInput").value.trim();
+    // Gunakan toLowerCase agar tidak sensitif huruf besar/kecil
+    const passVal = document.getElementById("passcodeInput").value.trim().toLowerCase();
+    
+    if (passVal === "developer") {
+        // Simpan status sebagai Developer
+        localStorage.setItem("user_role", "Developer");
+        localStorage.setItem("user_name", userVal || "Admin Dev");
+        
+        // Sembunyikan login, tampilkan mainpage dulu
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("mainPage").classList.remove("hidden");
+        
+        // Baru jalankan fungsi sandbox
+        initApp(); // Inisialisasi data dasar
+        initDeveloperMode(); 
+        showToast("Mode Developer Aktif! 🛠️");
+    } 
+    else if (ACCESS_KEYS[passVal.toUpperCase()]) {
+        // Login murid/guru biasa
+        localStorage.setItem("user_role", ACCESS_KEYS[passVal.toUpperCase()]);
+        localStorage.setItem("user_name", userVal || "User");
+        initApp();
+        showToast("Selamat datang!");
+    } 
+    else {
+        showToast("Kode akses salah!");
+    }
+}
+
+// Fungsi "Satpam" File
+async function amanBukaBuku(fileName) {
+    try {
+        // Melakukan fetch ringan untuk cek status file
+        const response = await fetch(`books/${fileName}`, { method: 'HEAD' });
+        
+        if (response.ok) {
+            // Jika file ditemukan, jalankan fungsi buka buku yang sudah ada
+            window.open(`books/${fileName}`, '_blank');
+        } else {
+            // Jika file tidak ada (Error 404)
+            showToast("⚠️ File belum diunduh atau tidak ditemukan.");
+        }
+    } catch (err) {
+        // Jika offline total atau ada masalah sistem
+        showToast("❌ Gagal memuat file secara offline.");
+    }
+}
+function initDeveloperMode() {
+    const sandbox = document.getElementById("devSandbox");
+    
+    // Pastikan sandbox tampil
+    sandbox.classList.remove("hidden");
+    
+    // Ambil isi dari view asli
+    const guruContent = document.getElementById("guruView").innerHTML;
+    const muridContent = document.getElementById("muridView").innerHTML;
+    
+    // Masukkan ke simulasi dan PAKSA hapus class 'hidden' pada anak elemennya
+    const simGuru = document.getElementById("simulasiGuru");
+    const simMurid = document.getElementById("simulasiMurid");
+    
+    simGuru.innerHTML = guruContent;
+    simMurid.innerHTML = muridContent;
+    
+    // Cari elemen di dalam simulasi yang mungkin masih punya class 'hidden'
+    simGuru.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
+    simMurid.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
+    
+    // Sembunyikan elemen utama agar tidak berantakan di layar HP
+    document.getElementById("bookList").style.display = "none";
+    document.getElementById("continueReading").style.display = "none";
+    
+    console.log("Sandbox Berhasil Dimuat");
+}
 // Panggil fungsi applySavedTheme di window.onload
 window.onload = () => {
   applySavedTheme();
@@ -638,5 +854,22 @@ window.onload = () => {
 
     window.onload = initApp;
   </script>
+  <div id="toast" class="toast"></div>
+
+<div id="sheetOverlay" class="bottom-sheet-overlay" onclick="closeSheet()"></div>
+<div id="bottomSheet" class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div id="sheetContent" style="text-align: center;">
+        <div id="sheetEmoji" style="font-size: 64px; margin-bottom: 16px;"></div>
+        <h2 id="sheetTitle" style="font-size: 24px; font-weight: 800; margin-bottom: 8px;"></h2>
+        <p id="sheetCategory" style="color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 20px;"></p>
+        <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 30px;">
+            Materi ini tersedia untuk dibaca secara offline. Klik tombol di bawah untuk membuka dokumen.
+        </p>
+        <button id="btnReadNow" class="btn-main" style="background: var(--accent);">
+            Buka Sekarang 📖
+        </button>
+    </div>
+</div>
 </body>
 </html>
