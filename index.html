@@ -682,6 +682,8 @@ function syncWithGuru() {
     fetch(FIREBASE_URL).then(res => res.json()).then(data => {
         document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
         const container = document.getElementById("classContent");
+        const studentName = localStorage.getItem("user_name");
+        const classCode = data.code; // Mengambil kode kelas yang aktif
         
         if(data.status === "Presentasi") {
             container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>`;
@@ -695,8 +697,6 @@ function syncWithGuru() {
                         <iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>
                     </div>`;
             } else {
-               const studentName = localStorage.getItem("user_name");
-               const classCode = data.code; // Mengambil kode kelas yang aktif
               container.innerHTML = `
             <div style="padding:20px; background:white; border-radius:15px; width:100%; text-align:left; box-shadow:var(--shadow-sm);">
             <p style="font-weight:800; color:var(--accent); margin-bottom:10px;">📝 SOAL KUIS:</p>
@@ -961,6 +961,17 @@ function pantauJawaban() {
             </div>
         `).join('');
     });
+}
+
+function setupKelasUI() {
+    const isGuru = localStorage.getItem("user_role") === "Guru";
+    document.getElementById("guruView").classList.toggle("hidden", !isGuru);
+    document.getElementById("muridView").classList.toggle("hidden", isGuru);
+
+    // Tambahkan ini: Jika login sebagai guru, cek jawaban setiap 5 detik
+    if(isGuru) {
+        setInterval(pantauJawaban, 5000);
+    }
 }
 // Panggil fungsi applySavedTheme di window.onload
 window.onload = () => {
