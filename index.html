@@ -14,14 +14,14 @@
       --text-main: #0f172a;
       --text-soft: #64748b;
       --primary: #1e293b;
-      --accent: #2563eb;
-      --accent-soft: rgba(37, 99, 235, 0.08);
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.1);
       --input-bg: #f1f5f9;
-      --glass-border: rgba(15, 23, 42, 0.08);
-      --nav-bg: rgba(255, 255, 255, 0.85);
+      --glass-border: rgba(15, 23, 42, 0.06);
+      --nav-bg: rgba(255, 255, 255, 0.8);
       --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05);
-      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.05);
-      --radius-xl: 24px;
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08);
+      --radius-xl: 28px;
       --radius-2xl: 32px;
     }
 
@@ -182,20 +182,20 @@
 
     .book-card {
       background: var(--card-bg);
-      border-radius: var(--radius-xl);
-      padding: 24px 16px;
+      border-radius: 20px;
+      padding: 20px;
       border: 1px solid var(--glass-border);
       text-decoration: none;
       color: inherit;
       text-align: center;
-      transition: all 0.3s ease;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       cursor: pointer;
     }
 
     .book-card:hover {
-      transform: translateY(-8px);
-      border-color: var(--accent);
-      box-shadow: var(--shadow-lg);
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
     }
 
     .book-cover {
@@ -337,15 +337,15 @@
 
   <div id="loginPage">
   <div class="login-card animate">
-    <div style="position: absolute; top: 20px; right: 20px;">
-      <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-size: 20px;">🌓</button>
-    </div>
+    <div style="text-align: right; margin-bottom: -20px;">
+    <button onclick="toggleTheme()" style="background:none; border:none; font-size: 22px; cursor:pointer;">🌓</button>
+  </div>
 
     <div class="login-header">
-      <h1>📖</h1> 
-      <h2 style="letter-spacing: -1px; font-weight: 800; color: var(--text-main);">Pustaka Digital</h2>
-      <p style="margin-bottom: 32px;">Silakan masuk untuk memulai belajar</p>
-    </div>
+      <h1>📖</h1>
+    <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -1px;">Pustaka Furina</h2>
+    <p style="color: var(--text-soft); font-size: 15px; margin-bottom: 32px;">Pintu digital menuju ilmu tanpa batas.</p>
+  </div>
     
     <div class="input-group">
       <label>Nama Pengguna</label>
@@ -389,10 +389,12 @@
     </div>
 </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <span id="roleBadge">System Online</span>
-          <button onclick="toggleTheme()" style="background:none; border:none; cursor:pointer; font-size: 20px;">🌓</button>
-        </div>
-        <h2 id="welcomeText" style="font-size: 24px; font-weight: 800;">Halo! 👋</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <span id="roleBadge" style="font-size: 10px; font-weight: 800; color: var(--accent); background: var(--accent-soft); padding: 6px 14px; border-radius: 50px;">STUDENT</span>
+      <button onclick="toggleTheme()" style="background:none; border:none; font-size: 20px; cursor:pointer;">🌓</button>
+    </div>
+    <h2 id="welcomeText" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Halo! 👋</h2>
+    </div>
         <p id="bookCounter" style="color: var(--text-soft); font-size: 13px; font-weight: 600;">Memuat koleksi...</p>
         
         <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)" style="margin-top: 20px;">
@@ -451,6 +453,18 @@
 </div>
 
           <div id="muridView" class="hidden">
+            <div id="muridView" class="card">
+    <div id="muridStatusContent">
+        </div>
+    
+    <div id="resetMuridArea" class="hidden" style="margin-top: 20px; text-align: center;">
+        <hr style="border: 0; border-top: 1px solid var(--glass-border); margin-bottom: 20px;">
+        <p style="font-size: 12px; opacity: 0.7;">Ingin masuk ke kelas lain?</p>
+        <button onclick="resetTampilanMurid()" class="btn-main" style="background: var(--accent); width: 100%;">
+            Masukan Kode Baru
+        </button>
+    </div>
+</div>
             <div id="joinArea">
                 <h3>Gabung Kelas</h3>
                 <p style="margin-bottom: 20px;">Masukkan kode dari gurumu</p>
@@ -611,9 +625,17 @@
         if(data.status === "Presentasi") {
           container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>`;
         } else if(data.status === "Selesai") {
-          container.innerText = "Sesi Berakhir";
-          clearInterval(syncInterval);
-        }
+    container.innerHTML = `
+        <div style="text-align:center; padding:20px;">
+            <h3 style="color:#ef4444;">Sesi Telah Berakhir</h3>
+            <p>Terima kasih telah mengikuti kelas ini.</p>
+        </div>`;
+    
+    // MUNCULKAN TOMBOL RESET
+    document.getElementById("resetMuridArea").classList.remove("hidden");
+    
+    clearInterval(syncInterval);
+}
       });
     }
 
@@ -669,9 +691,18 @@ function syncWithGuru() {
             }
         } 
         else if(data.status === "Selesai") {
-            container.innerText = "Sesi Berakhir";
-            clearInterval(syncInterval);
-        }
+    container.innerHTML = `
+        <div style="text-align:center; padding:20px;">
+            <h3 style="color:#ef4444;">Sesi Telah Berakhir</h3>
+            <p>Terima kasih telah mengikuti kelas ini.</p>
+        </div>`;
+    
+    // Munculin tombol masuk ulang
+    document.getElementById("resetMuridArea").classList.remove("hidden");
+    
+    // Stop sync
+    clearInterval(syncInterval);
+}
     });
 }
 
@@ -713,7 +744,18 @@ function showToast(msg) {
     toast.style.display = "block";
     setTimeout(() => { toast.style.display = "none"; }, 2500);
 }
-
+function resetTampilanMurid() {
+    // Sembunyikan tombol reset
+    document.getElementById("resetMuridArea").classList.add("hidden");
+    
+    // Hentikan sinkronisasi biar gak nyangkut
+    clearInterval(syncInterval);
+    
+    // Balikin ke tampilan input kode
+    showInputKodeKelas();
+    
+    showToast("Silakan masuk ke kelas baru.");
+}
 // Fungsi untuk menampilkan Detail Buku (Bottom Sheet)
 function openBookDetails(title, file, emoji, color) {
     // Isi konten sheet
@@ -815,6 +857,17 @@ async function amanBukaBuku(fileName) {
         showToast("❌ Gagal memuat file secara offline.");
     }
 }
+function showInputKodeKelas() {
+    // Tampilkan kembali form input kode
+    document.getElementById("joinArea").classList.remove("hidden");
+    
+    // Sembunyikan area kelas aktif
+    document.getElementById("liveClassArea").classList.add("hidden");
+    
+    // Kosongkan input kode
+    document.getElementById("inputClassCode").value = "";
+}
+
 function initDeveloperMode() {
     const sandbox = document.getElementById("devSandbox");
     
