@@ -330,6 +330,11 @@
     @media (min-width: 768px) {
       .books-grid { grid-template-columns: repeat(4, 1fr); }
     }
+    .login-card button {
+  position: relative;
+  z-index: 10; /* Memastikan tombol di atas elemen lain */
+  cursor: pointer;
+}
   </style>
 </head>
 
@@ -337,16 +342,16 @@
 
   <div id="loginPage">
   <div class="login-card animate">
-    <div style="text-align: right; margin-bottom: -20px;">
-    <button onclick="toggleTheme()" style="background:none; border:none; font-size: 22px; cursor:pointer;">🌓</button>
-  </div>
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 20;">
+      <button onclick="toggleTheme()" style="background:none; border:none; font-size: 22px; cursor:pointer;">🌓</button>
+    </div>
 
     <div class="login-header">
       <h1>📖</h1>
-    <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -1px;">Pustaka Digital</h2>
-    <p style="color: var(--text-soft); font-size: 15px; margin-bottom: 32px;">Akses Buku secara simpel dan susah</p>
-  </div>
-    
+      <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -1px;">Pustaka Digital</h2>
+      <p style="color: var(--text-soft); font-size: 15px; margin-bottom: 32px;">Akses Buku secara simpel dan mudah</p>
+    </div>
+
     <div class="input-group">
       <label>Nama Pengguna</label>
       <input type="text" id="usernameInput" placeholder="Masukkan nama pengguna" autocomplete="off">
@@ -413,6 +418,7 @@
 
       <div id="kelasSection" class="hidden animate">
         <div class="sync-card">
+
           <div id="guruView" class="hidden">
     <h3 style="margin-bottom: 12px;">Panel Guru</h3>
     
@@ -438,6 +444,15 @@
             <select id="pilihPdfQuiz" style="margin-top:5px;">
                 <option value="quiz_matematika.pdf">Soal Matematika.pdf</option>
                 <option value="quiz_umum.pdf">Soal Umum.pdf</option>
+                <div id="rekapJawaban" style="margin-top: 25px; text-align: left; border-top: 2px dashed var(--glass-border); padding-top: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <label style="font-size: 11px; font-weight: 800; color: var(--accent);">JAWABAN MURID</label>
+        <button onclick="pantauJawaban()" style="font-size: 10px; background: var(--accent); color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer;">Refresh Jawaban</button>
+    </div>
+    <div id="listJawabanMurid" style="margin-top: 10px; max-height: 200px; overflow-y: auto;">
+        <p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban masuk...</p>
+    </div>
+</div>
             </select>
         </div>
     </div>
@@ -680,14 +695,17 @@ function syncWithGuru() {
                         <iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>
                     </div>`;
             } else {
-                container.innerHTML = `
-                    <div style="padding:20px; background:white; border-radius:15px; width:100%; text-align:left; box-shadow:var(--shadow-sm);">
-                        <p style="font-weight:800; color:var(--accent); margin-bottom:10px;">📝 SOAL KUIS:</p>
-                        <p style="font-size:16px; white-space: pre-wrap;">${data.file}</p>
-                        <hr style="margin:15px 0; opacity:0.1;">
-                        <textarea placeholder="Tulis jawabanmu di sini..." style="width:100%; height:100px; border-radius:10px; padding:10px; border:1px solid #ddd;"></textarea>
-                        <button class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="alert('Jawaban terkirim!')">Kirim Jawaban</button>
-                    </div>`;
+               const studentName = localStorage.getItem("user_name");
+               const classCode = data.code; // Mengambil kode kelas yang aktif
+              container.innerHTML = `
+            <div style="padding:20px; background:white; border-radius:15px; width:100%; text-align:left; box-shadow:var(--shadow-sm);">
+            <p style="font-weight:800; color:var(--accent); margin-bottom:10px;">📝 SOAL KUIS:</p>
+            <p style="font-size:16px; white-space: pre-wrap;">${data.file}</p>
+            <hr style="margin:15px 0; opacity:0.1;">
+            <textarea id="jawabanMuridText" placeholder="Tulis jawabanmu di sini..." style="width:100%; height:100px; border-radius:10px; padding:10px; border:1px solid #ddd;"></textarea>
+            <button class="btn-main" style="margin-top:10px; background:var(--accent);" 
+                onclick="kirimJawabanKeGuru('${classCode}', '${studentName}')">Kirim Jawaban</button>
+        </div>`;
             }
         } 
         else if(data.status === "Selesai") {
@@ -703,6 +721,23 @@ function syncWithGuru() {
     // Stop sync
     clearInterval(syncInterval);
 }
+    });
+}
+function kirimJawabanKeGuru(code, nama) {
+    const isiJawaban = document.getElementById("jawabanMuridText").value;
+    if(!isiJawaban) return showToast("Isi jawaban dulu!");
+
+    const URL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}/${nama}.json`;
+
+    fetch(URL_JAWABAN, {
+        method: 'PUT',
+        body: JSON.stringify({
+            nama: nama,
+            jawaban: isiJawaban,
+            waktu: new Date().toLocaleTimeString()
+        })
+    }).then(() => {
+        showToast("Jawaban berhasil terkirim!");
     });
 }
 
@@ -765,12 +800,11 @@ function openBookDetails(title, file, emoji, color) {
     
     // Set tombol baca
     document.getElementById("btnReadNow").onclick = () => {
-        closeSheet();
-        // Simpan progress lanjut membaca
-        localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
-        checkLastRead();
-        window.open(`books/${file}`, '_blank');
-    };
+    closeSheet();
+    // Simpan progress lanjut membaca
+    localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
+    window.open(`books/${file}`, '_blank');
+};
 
     // Munculkan sheet
     document.getElementById("sheetOverlay").classList.add("active");
@@ -844,6 +878,12 @@ async function amanBukaBuku(fileName) {
     try {
         // Melakukan fetch ringan untuk cek status file
         const response = await fetch(`books/${fileName}`, { method: 'HEAD' });
+        document.getElementById("btnReadNow").onclick = () => {
+    closeSheet();
+    localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
+    // Memanggil fungsi pengecekan file
+    amanBukaBuku(file); 
+};
         
         if (response.ok) {
             // Jika file ditemukan, jalankan fungsi buka buku yang sudah ada
@@ -895,6 +935,33 @@ function initDeveloperMode() {
     
     console.log("Sandbox Berhasil Dimuat");
 }
+
+function pantauJawaban() {
+    const code = document.getElementById("activeCode").innerText;
+    if(code === "-----") return;
+
+    const URL_AMBIL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}.json`;
+
+    fetch(URL_AMBIL_JAWABAN)
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById("listJawabanMurid");
+        if(!data) {
+            container.innerHTML = `<p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban...</p>`;
+            return;
+        }
+
+        container.innerHTML = Object.values(data).map(item => `
+            <div style="background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--accent);">
+                <div style="display: flex; justify-content: space-between;">
+                    <b style="font-size: 12px;">${item.nama}</b>
+                    <span style="font-size: 10px; color: var(--text-soft);">${item.waktu}</span>
+                </div>
+                <p style="font-size: 13px; margin-top: 4px;">${item.jawaban}</p>
+            </div>
+        `).join('');
+    });
+}
 // Panggil fungsi applySavedTheme di window.onload
 window.onload = () => {
   applySavedTheme();
@@ -905,7 +972,6 @@ window.onload = () => {
       if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
     }
 
-    window.onload = initApp;
   </script>
   <div id="toast" class="toast"></div>
 
@@ -925,4 +991,4 @@ window.onload = () => {
     </div>
 </div>
 </body>
-</html>
+<!-- </html -->
