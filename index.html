@@ -937,7 +937,10 @@ function initDeveloperMode() {
 }
 
 function pantauJawaban() {
-    const code = document.getElementById("activeCode").innerText;
+    const codeElement = document.getElementById("activeCode");
+    if(!codeElement) return;
+    
+    const code = codeElement.innerText;
     if(code === "-----") return;
 
     const URL_AMBIL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}.json`;
@@ -947,20 +950,24 @@ function pantauJawaban() {
     .then(data => {
         const container = document.getElementById("listJawabanMurid");
         if(!data) {
-            container.innerHTML = `<p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban...</p>`;
+            container.innerHTML = `<p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban masuk...</p>`;
             return;
         }
 
-        container.innerHTML = Object.values(data).map(item => `
-            <div style="background: var(--input-bg); padding: 10px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--accent);">
-                <div style="display: flex; justify-content: space-between;">
-                    <b style="font-size: 12px;">${item.nama}</b>
-                    <span style="font-size: 10px; color: var(--text-soft);">${item.waktu}</span>
+        // Mengubah objek Firebase menjadi Array agar bisa di-render
+        const daftarJawaban = Object.keys(data).map(key => data[key]);
+
+        container.innerHTML = daftarJawaban.map(item => `
+            <div style="background: var(--input-bg); padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--accent); animation: fadeInUp 0.3s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b style="font-size: 13px; color: var(--text-main);">${item.nama}</b>
+                    <span style="font-size: 10px; color: var(--text-soft);">${item.waktu || ''}</span>
                 </div>
-                <p style="font-size: 13px; margin-top: 4px;">${item.jawaban}</p>
+                <p style="font-size: 14px; margin-top: 6px; color: var(--text-main); line-height: 1.4;">${item.jawaban}</p>
             </div>
         `).join('');
-    });
+    })
+    .catch(err => console.error("Gagal mengambil jawaban:", err));
 }
 
 function setupKelasUI() {
@@ -968,9 +975,12 @@ function setupKelasUI() {
     document.getElementById("guruView").classList.toggle("hidden", !isGuru);
     document.getElementById("muridView").classList.toggle("hidden", isGuru);
 
-    // Tambahkan ini: Jika login sebagai guru, cek jawaban setiap 5 detik
+    // TAMBAHKAN INI: Jika login sebagai guru, cek jawaban otomatis setiap 3 detik
     if(isGuru) {
-        setInterval(pantauJawaban, 5000);
+        // Hapus interval lama jika ada (mencegah penumpukan)
+        if(window.pantuanInterval) clearInterval(window.pantuanInterval);
+        
+        window.pantuanInterval = setInterval(pantauJawaban, 3000);
     }
 }
 // Panggil fungsi applySavedTheme di window.onload
