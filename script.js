@@ -478,3 +478,39 @@ window.onload = () => {
     function logout() {
       if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
     }
+
+    function updateOnlineStatus() {
+    const statusDiv = document.getElementById("connectionStatus");
+    const isOnline = navigator.onLine;
+
+    if (isOnline) {
+        statusDiv.innerText = "🌐 ONLINE: FITUR KELAS AKTIF";
+        statusDiv.style.background = "rgba(16, 185, 129, 0.1)"; // Hijau transparan
+        statusDiv.style.color = "#10b981";
+        
+        // Aktifkan kembali tombol-tombol kelas
+        if(document.getElementById("nav-kelas")) {
+            document.getElementById("nav-kelas").style.opacity = "1";
+            document.getElementById("nav-kelas").style.pointerEvents = "auto";
+        }
+    } else {
+        statusDiv.innerText = "📡 OFFLINE: MODE BACA SAJA";
+        statusDiv.style.background = "rgba(239, 68, 68, 0.1)"; // Merah transparan
+        statusDiv.style.color = "#ef4444";
+        
+        // Beri tahu user kalau fitur kelas tidak bisa diakses
+        showToast("Koneksi hilang. Fitur Kelas dinonaktifkan.");
+        
+        // Opsional: Matikan akses ke menu kelas agar tidak error
+        if(document.getElementById("nav-kelas")) {
+            document.getElementById("nav-kelas").style.opacity = "0.5";
+            document.getElementById("nav-kelas").style.pointerEvents = "none";
+            showSection('books'); // Paksa pindah ke koleksi buku
+        }
+    }
+}
+
+// Jalankan saat aplikasi pertama kali dibuka
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
