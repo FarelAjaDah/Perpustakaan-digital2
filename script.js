@@ -513,3 +513,10 @@ window.onload = () => {
     function logout() {
       if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
     }
+    if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Sistem Offline Aktif!', reg))
+      .catch(err => console.error('Gagal sistem offline', err));
+  });
+}
