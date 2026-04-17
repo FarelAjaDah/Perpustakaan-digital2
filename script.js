@@ -285,7 +285,6 @@ function kirimJawabanKeGuru(code, nama) {
   localStorage.setItem("theme", newTheme);
 }
 
-// Tambahkan ini di dalam fungsi initApp agar tema yang dipilih tersimpan otomatis
 function applySavedTheme() {
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme) {
@@ -496,7 +495,7 @@ function setupKelasUI() {
     document.getElementById("guruView").classList.toggle("hidden", !isGuru);
     document.getElementById("muridView").classList.toggle("hidden", isGuru);
 
-    // TAMBAHKAN INI: Jika login sebagai guru, cek jawaban otomatis setiap 3 detik
+     // Jika login sebagai guru, cek jawaban otomatis setiap 3 detik
     if(isGuru) {
         // Hapus interval lama jika ada (mencegah penumpukan)
         if(window.pantuanInterval) clearInterval(window.pantuanInterval);
