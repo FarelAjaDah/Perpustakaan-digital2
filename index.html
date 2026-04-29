@@ -3,179 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Pustaka Furina v3 - Modern Sync</title>
+  <title>Pustaka Digital v5</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4f46e5">
+  <meta name="theme-color" content="#4f46e5">
 </head>
 
 <body data-theme="light">
 
   <div id="loginPage">
-  <div class="login-card animate">
-    <div style="position: absolute; top: 20px; right: 20px; z-index: 20;">
-      <button onclick="toggleTheme()" style="background:none; border:none; font-size: 22px; cursor:pointer;">🌓</button>
-    </div>
+    <div class="login-card animate">
+      <div style="position: absolute; top: 20px; right: 20px; z-index: 20;">
+        <button onclick="toggleTheme()" style="background:none; border:none; font-size: 22px; cursor:pointer;">🌓</button>
+      </div>
 
-    <div class="login-header">
-      <h1>📖</h1>
-      <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -1px;">Pustaka Digital</h2>
-      <p style="color: var(--text-soft); font-size: 15px; margin-bottom: 32px;">Akses Buku secara simpel dan mudah</p>
-    </div>
+      <div class="login-header">
+        <h1>📖</h1>
+        <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -1px;">Pustaka Digital</h2>
+        <p style="color: var(--text-soft); font-size: 15px; margin-bottom: 32px;">Akses Buku secara simpel dan mudah</p>
+      </div>
 
-    <div class="input-group">
-      <label>Nama Pengguna</label>
-      <input type="text" id="usernameInput" placeholder="Masukkan nama pengguna" autocomplete="off">
-    </div>
+      <div class="input-group">
+        <label>Nama Pengguna</label>
+        <input type="text" id="usernameInput" placeholder="Masukkan nama pengguna" autocomplete="off">
+      </div>
 
-    <div class="input-group">
-      <label>Kode Akses</label>
-      <input type="password" id="passcodeInput" placeholder="Masukkan kode akses..." maxlength="10">
+      <div class="input-group">
+        <label>Kode Akses</label>
+        <input type="password" id="passcodeInput" placeholder="Masukkan kode akses..." maxlength="10">
+      </div>
+      
+      <button class="btn-main btn-login" onclick="handleLogin()">
+        Masuk ke Pustaka 
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+      
+      <p style="font-size: 11px; margin-top: 24px; color: var(--text-soft); font-weight: 600;">
+        V5.0 • Secure Connection Active
+      </p>
     </div>
-    
-    <button class="btn-main btn-login" onclick="handleLogin()">
-      Masuk ke Pustaka 
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-    </button>
-    
-    <p style="font-size: 11px; margin-top: 24px; color: var(--text-soft); font-weight: 600;">
-      V3.1 • Secure Connection Active
-    </p>
   </div>
-</div>
- <div id="connectionStatus" style="transition: all 0.3s ease; text-align: center; padding: 5px; font-size: 11px; font-weight: 800; border-radius: 50px; margin-top: 10px;">
-    Memeriksa koneksi...
-</div>
+
   <div id="mainPage" class="hidden">
     <header class="header">
       <div class="container">
-        <div id="devSandbox" class="hidden animate" style="padding: 10px;">
-    <h3 style="text-align: center; margin-bottom: 20px;">🛠️ Developer Sandbox</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 2px solid #ef4444;">
-            <p style="font-weight: 800; color: #ef4444; font-size: 10px; margin-bottom: 10px;">POV GURU</p>
-            <div id="simulasiGuru">
-                </div>
+        <div id="connectionStatus" style="transition: all 0.3s ease; text-align: center; padding: 5px; font-size: 11px; font-weight: 800; border-radius: 50px; margin-bottom: 15px;">
+            Memeriksa koneksi...
         </div>
 
-        <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 2px solid #2563eb;">
-            <p style="font-weight: 800; color: #2563eb; font-size: 10px; margin-bottom: 10px;">POV MURID</p>
-            <div id="simulasiMurid">
-              <div style="margin-top: 15px; display: flex; gap: 10px;">
-    <button onclick="localStorage.setItem('user_role', 'Guru'); location.reload();" 
-            style="flex:1; padding:8px; font-size:10px; border-radius:10px; border:none; background:#ef4444; color:white;">
-        Login sebagai GURU
-    </button>
-    <button onclick="localStorage.setItem('user_role', 'Murid'); location.reload();" 
-            style="flex:1; padding:8px; font-size:10px; border-radius:10px; border:none; background:#2563eb; color:white;">
-        Login sebagai MURID
-    </button>
-</div>
-                </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span id="roleBadge">STUDENT</span>
+          <button onclick="toggleTheme()" style="background:none; border:none; font-size: 20px; cursor:pointer;">🌓</button>
         </div>
-    </div>
-</div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <span id="roleBadge" style="font-size: 10px; font-weight: 800; color: var(--accent); background: var(--accent-soft); padding: 6px 14px; border-radius: 50px;">STUDENT</span>
-      <button onclick="toggleTheme()" style="background:none; border:none; font-size: 20px; cursor:pointer;">🌓</button>
-    </div>
-    <h2 id="welcomeText" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Halo! 👋</h2>
-    </div>
-        <p id="bookCounter" style="color: var(--text-soft); font-size: 13px; font-weight: 600;">Memuat koleksi...</p>
-        
-        <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)" style="margin-top: 20px;">
-        
-        <div class="category-container">
-          <div class="cat-btn active-cat" onclick="setCategory('Semua')">Semua</div>
-          <div class="cat-btn" onclick="setCategory('Pelajaran')">📚 Pelajaran</div>
-          <div class="cat-btn" onclick="setCategory('Komik')">🎨 Komik</div>
-          <div class="cat-btn" onclick="setCategory('Novel')">📖 Novel</div>
+        <h2 id="welcomeText" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px;">Halo! 👋</h2>
+
+        <div id="searchArea">
+          <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)">
+          <p id="bookCounter" style="color: var(--text-soft); font-size: 13px; font-weight: 600; margin: 15px 0 10px 0;">Memuat koleksi...</p>
+          
+          <div class="category-container">
+            <div class="cat-btn active-cat" onclick="setCategory('Semua')">Semua</div>
+            <div class="cat-btn" onclick="setCategory('Pelajaran')">📚 Pelajaran</div>
+            <div class="cat-btn" onclick="setCategory('Komik')">🎨 Komik</div>
+            <div class="cat-btn" onclick="setCategory('Novel')">📖 Novel</div>
+          </div>
         </div>
       </div>
     </header>
 
-    <main class="container">
-      <div id="bookList" class="books-grid"></div>
+    <main class="container" style="padding-bottom: 100px;">
+      <div id="bookSection">
+        <div id="continueReading" class="hidden" style="margin-bottom: 24px;">
+          <p style="font-size: 11px; font-weight: 800; color: var(--accent); margin-bottom: 10px;">LANJUTKAN MEMBACA</p>
+          <div id="lastReadCard"></div>
+        </div>
+        <div id="bookList" class="books-grid"></div>
+      </div>
 
       <div id="kelasSection" class="hidden animate">
         <div class="sync-card">
-
           <div id="guruView" class="hidden">
-    <h3 style="margin-bottom: 12px;">Panel Guru</h3>
-    
-    <label style="font-size: 12px; font-weight: 700; color: var(--text-soft);">MATERI PRESENTASI</label>
-    <select id="pilihBuku" style="margin: 8px 0 20px;">
-        <option value="matematika.pdf">📐 Matematika</option>
-        <option value="sejarah.pdf">📜 Sejarah</option>
-        <option value="biologi.pdf">🧬 Biologi</option>
-    </select>
+            <h3 style="margin-bottom: 12px;">Panel Guru</h3>
+            <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+              <label style="font-size: 11px; font-weight: 800; color: var(--accent);">PRESENTASI PDF</label>
+              <select id="selectFileBuku" class="input-main" style="width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px;">
+                <option value="matematika.pdf">📐 Matematika</option>
+                <option value="sejarah.pdf">📜 Sejarah</option>
+                <option value="fisika.pdf">🔬 Fisika</option>
+              </select>
+              <button onclick="mulaiPresentasiPDF()" class="btn-main" style="margin-top: 10px; background: #10b981; width: 100%;">🚀 Bagikan ke Murid</button>
+            </div>
 
-    <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
-        <label style="font-size: 11px; font-weight: 800; color: var(--accent);">MENU KUIS</label>
-        <select id="tipeQuiz" onchange="toggleQuizInput()" style="margin: 8px 0;">
-            <option value="manual">📝 Buat Kuis Manual (Teks)</option>
-            <option value="pdf">📄 Gunakan PDF Soal</option>
-        </select>
-        
-        <div id="inputManual">
-            <textarea id="quizText" placeholder="Ketik soal kuis di sini..." style="width:100%; height:80px; border-radius:12px; padding:10px; border:1px solid var(--glass-border); font-family:inherit;"></textarea>
-        </div>
-        
-        <div id="inputPdf" class="hidden">
-            <select id="pilihPdfQuiz" style="margin-top:5px;">
-                <option value="quiz_matematika.pdf">Soal Matematika.pdf</option>
-                <option value="quiz_umum.pdf">Soal Umum.pdf</option>
-                <div id="rekapJawaban" style="margin-top: 25px; text-align: left; border-top: 2px dashed var(--glass-border); padding-top: 15px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <label style="font-size: 11px; font-weight: 800; color: var(--accent);">JAWABAN MURID</label>
-        <button onclick="pantauJawaban()" style="font-size: 10px; background: var(--accent); color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer;">Refresh Jawaban</button>
-    </div>
-    <div id="listJawabanMurid" style="margin-top: 10px; max-height: 200px; overflow-y: auto;">
-        <p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban masuk...</p>
-    </div>
-</div>
-            </select>
-        </div>
-    </div>
+            <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+              <label style="font-size: 11px; font-weight: 800; color: var(--accent);">MENU KUIS</label>
+              <textarea id="quizText" placeholder="Ketik soal kuis di sini..." style="width:100%; height:60px; border-radius:12px; padding:10px; border:1px solid var(--glass-border); font-family:inherit; margin-top:8px;"></textarea>
+              <button class="btn-main" onclick="mulaiQuiz()" style="background: #ef4444; width: 100%; margin-top: 10px;">Kirim Kuis</button>
+            </div>
 
-    <p style="font-size: 11px; font-weight: 800; color: var(--text-soft);">KODE KELAS</p>
-    <div id="activeCode" style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom:15px;">-----</div>
+            <p style="font-size: 11px; font-weight: 800; color: var(--text-soft);">KODE KELAS AKTIF</p>
+            <div id="activeCode" style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom:15px;">-----</div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <button class="btn-main" onclick="mulaiQuiz()" style="background: #ef4444;">Kirim Kuis</button>
-        <button class="btn-main" onclick="mulaiPresentasi()" style="background: var(--accent);">Mulai Slide</button>
-    </div>
-    <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 12px;">Akhiri Sesi</button>
-</div>
+            <div id="rekapJawaban" style="text-align: left; border-top: 2px dashed var(--glass-border); padding-top: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-size: 11px; font-weight: 800; color: var(--accent);">JAWABAN MURID</label>
+                <button onclick="pantauJawaban()" style="font-size: 10px; background: var(--accent); color: white; border: none; padding: 4px 8px; border-radius: 5px;">Refresh</button>
+              </div>
+              <div id="listJawabanMurid" style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
+                <p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban...</p>
+              </div>
+            </div>
+            <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 20px; width: 100%;">Akhiri Sesi</button>
+          </div>
 
           <div id="muridView" class="hidden">
-            <div id="muridView" class="card">
-    <div id="muridStatusContent">
-        </div>
-    
-    <div id="resetMuridArea" class="hidden" style="margin-top: 20px; text-align: center;">
-        <hr style="border: 0; border-top: 1px solid var(--glass-border); margin-bottom: 20px;">
-        <p style="font-size: 12px; opacity: 0.7;">Ingin masuk ke kelas lain?</p>
-        <button onclick="resetTampilanMurid()" class="btn-main" style="background: var(--accent); width: 100%;">
-            Masukan Kode Baru
-        </button>
-    </div>
-</div>
             <div id="joinArea">
-                <h3>Gabung Kelas</h3>
-                <p style="margin-bottom: 20px;">Masukkan kode dari gurumu</p>
-                <input type="text" id="inputClassCode" placeholder="KODE" style="text-align: center; margin-bottom: 20px; font-weight: 800; letter-spacing: 4px;">
-                <button class="btn-main" onclick="joinClass()">Masuk</button>
+              <h3>Gabung Kelas</h3>
+              <p style="margin-bottom: 20px; font-size: 14px; color: var(--text-soft);">Masukkan kode dari gurumu</p>
+              <input type="text" id="inputClassCode" placeholder="KODE" style="text-align: center; margin-bottom: 20px; font-weight: 800; letter-spacing: 4px; width: 100%;">
+              <button class="btn-main" onclick="joinClass()" style="width: 100%;">Masuk</button>
             </div>
             <div id="liveClassArea" class="hidden">
-                <div style="background: var(--accent); color: white; padding: 16px; border-radius: 16px; margin-bottom: 20px;">
-                    <p id="currentStatus" style="font-weight: 800; font-size: 12px;">MENUNGGU GURU...</p>
-                </div>
-                <div id="classContent" style="min-height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 20px; color: var(--text-soft);">
-                    Menunggu konten...
-                </div>
+              <div style="background: var(--accent); color: white; padding: 16px; border-radius: 16px; margin-bottom: 20px;">
+                <p id="currentStatus" style="font-weight: 800; font-size: 12px;">MENUNGGU GURU...</p>
+              </div>
+              <div id="classContent" style="min-height: 200px; border: 2px dashed var(--glass-border); border-radius: 20px; overflow: hidden; background: var(--input-bg);">
+                <p style="padding: 20px; color: var(--text-soft); text-align: center;">Menunggu konten dari guru...</p>
+              </div>
+              <div id="resetMuridArea" class="hidden" style="margin-top: 20px;">
+                <button onclick="location.reload()" class="btn-main" style="background: var(--text-soft); width: 100%;">Ganti Kelas</button>
+              </div>
             </div>
           </div>
         </div>
@@ -187,24 +144,24 @@
       <div class="nav-item" id="nav-kelas" onclick="showSection('kelas')">Ruang Kelas</div>
       <div class="nav-item" onclick="logout()" style="color: #ef4444;">Keluar</div>
     </nav>
-    <div class="category-container animate"></div>
   </div>
+
   <div id="toast" class="toast"></div>
 
-<div id="sheetOverlay" class="bottom-sheet-overlay" onclick="closeSheet()"></div>
-<div id="bottomSheet" class="bottom-sheet">
+  <div id="sheetOverlay" class="bottom-sheet-overlay" onclick="closeSheet()"></div>
+  <div id="bottomSheet" class="bottom-sheet">
     <div class="sheet-handle"></div>
     <div id="sheetContent" style="text-align: center;">
-        <div id="sheetEmoji" style="font-size: 64px; margin-bottom: 16px;"></div>
-        <h2 id="sheetTitle" style="font-size: 24px; font-weight: 800; margin-bottom: 8px;"></h2>
-        <p id="sheetCategory" style="color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 20px;"></p>
-        <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 30px;">
-            Materi ini tersedia untuk dibaca secara offline. Klik tombol di bawah untuk membuka dokumen.
-        </p>
-        <button id="btnReadNow" class="btn-main" style="background: var(--accent);">
-            Buka Sekarang 📖
-        </button>
-        <script src="script.js"></script>
+      <div id="sheetEmoji" style="font-size: 64px; margin-bottom: 16px;"></div>
+      <h2 id="sheetTitle" style="font-size: 24px; font-weight: 800; margin-bottom: 8px;"></h2>
+      <p id="sheetCategory" style="color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 20px;"></p>
+      <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 30px;">
+        Materi ini tersedia untuk dibaca secara offline. Klik tombol di bawah untuk membuka dokumen.
+      </p>
+      <button id="btnReadNow" class="btn-main" style="background: var(--accent);">Buka Sekarang 📖</button>
     </div>
-</div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
+</html>
