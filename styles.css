@@ -145,7 +145,10 @@
 }
 
     .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-    .btn-main:active { transform: scale(0.97); }
+  .btn-main:active {
+    transform: scale(0.95);
+    filter: brightness(0.9);
+}
 
     /* --- LAYOUT --- */
     .container {
@@ -236,9 +239,11 @@
       padding: 32px;
       border-radius: var(--radius-2xl);
       border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px); /* Memberikan efek kaca */
       text-align: center;
       max-width: 500px;
-      margin: 0 auto;
+      margin: 20px auto;
+      box-shadow: var(--shadow-lg);
     }
 
     .toast {
@@ -352,4 +357,39 @@
     background: var(--input-bg);
     padding: 15px;
     border-radius: 20px;
+}
+
+.answer-bubble {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 18px;
+    margin-bottom: 12px;
+    border-left: 5px solid var(--accent);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.answer-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.student-name {
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.iframe {
+    background-color: white;
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
