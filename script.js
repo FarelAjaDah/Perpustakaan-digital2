@@ -26,43 +26,26 @@ const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-south
       const userVal = document.getElementById("usernameInput").value.trim();
       const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
       
-      if (ACCESS_KEYS[passVal]) {
+      if (passVal === "DEVELOPER") {
+        localStorage.setItem("user_role", "Developer");
+        localStorage.setItem("user_name", userVal || "Admin Dev");
+        initApp();
+        initDeveloperMode();
+        showToast("Mode Developer Aktif! 🛠️");
+    } else if (ACCESS_KEYS[passVal]) {
         localStorage.setItem("user_role", ACCESS_KEYS[passVal]);
         localStorage.setItem("user_name", userVal || "User");
         initApp();
-      } else {
-        alert("Kode akses salah atau tidak terdaftar!");
-      }
+        showToast("Selamat datang!");
+    } else {
+        showToast("Kode akses salah!");
     }
-        function updateOnlineStatus() {
+}
+       function updateOnlineStatus() {
     const statusDiv = document.getElementById("connectionStatus");
     const isOnline = navigator.onLine;
-
-    if (isOnline) {
-        statusDiv.innerText = "🌐 ONLINE: FITUR KELAS AKTIF";
-        statusDiv.style.background = "rgba(16, 185, 129, 0.1)"; // Hijau transparan
-        statusDiv.style.color = "#10b981";
-        
-        // Aktifkan kembali tombol-tombol kelas
-        if(document.getElementById("nav-kelas")) {
-            document.getElementById("nav-kelas").style.opacity = "1";
-            document.getElementById("nav-kelas").style.pointerEvents = "auto";
-        }
-    } else {
-        statusDiv.innerText = "📡 OFFLINE: MODE BACA SAJA";
-        statusDiv.style.background = "rgba(239, 68, 68, 0.1)"; // Merah transparan
-        statusDiv.style.color = "#ef4444";
-        
-        // Beri tahu user kalau fitur kelas tidak bisa diakses
-        showToast("Koneksi hilang. Fitur Kelas dinonaktifkan.");
-        
-        // Opsional: Matikan akses ke menu kelas agar tidak error
-        if(document.getElementById("nav-kelas")) {
-            document.getElementById("nav-kelas").style.opacity = "0.5";
-            document.getElementById("nav-kelas").style.pointerEvents = "none";
-            showSection('books'); // Paksa pindah ke koleksi buku
-        }
-    }
+    statusDiv.innerText = isOnline ? "🌐 ONLINE: FITUR KELAS AKTIF" : "📡 OFFLINE: MODE BACA";
+    statusDiv.style.color = isOnline ? "#10b981" : "#ef4444";
 }
 
 // Jalankan saat aplikasi pertama kali dibuka
@@ -70,18 +53,28 @@ window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 updateOnlineStatus();
 
-    function initApp() {
-      const role = localStorage.getItem("user_role");
-      if(!role) return;
-
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("mainPage").classList.remove("hidden");
-      document.getElementById("roleBadge").innerText = role + " Online";
-      document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
-      renderBooks("");
+   function initApp() {
+    const role = localStorage.getItem("user_role");
+    
+    // Jika tidak ada role (belum login), pastikan mainPage tersembunyi
+    if (!role) {
+        document.getElementById("mainPage").classList.add("hidden");
+        document.getElementById("loginPage").classList.remove("hidden");
+        return;
     }
 
-    / --- PERBAIKAN FUNGSI RENDER (Tambah Animasi Stagger) --- /
+    // Jika sudah login
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("mainPage").classList.remove("hidden"); // Nav bar ikut muncul karena di dalam sini
+    
+    document.getElementById("roleBadge").innerText = role.toUpperCase();
+    document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
+    
+    renderBooks("");
+    updateOnlineStatus();
+}
+
+    / SISTEM BUKU LAH INTINYA /
   function renderBooks(kw) {
     const list = document.getElementById("bookList");
     const keyword = kw.toLowerCase();
@@ -94,98 +87,134 @@ updateOnlineStatus();
     document.getElementById("bookCounter").innerText = `${filtered.length} materi ditemukan`;
     
     list.innerHTML = filtered.map((b, index) => `
-        <div class="book-card animate" 
-             style="animation-delay: ${index * 0.05}s" 
+        <div class="book-card animate" style="animation-delay: ${index * 0.05}s" 
              onclick="openBookDetails('${b.title}', '${b.file}', '${b.emoji}', '${b.color}')">
-            <div class="book-cover" style="background: ${b.color}15; color: ${b.color};">
-                ${b.emoji}
-            </div>
+            <div class="book-cover" style="background: ${b.color}15; color: ${b.color};">${b.emoji}</div>
             <div style="font-weight: 800; font-size: 15px; color: var(--text-main);">${b.title}</div>
             <div style="font-size: 10px; color: var(--accent); font-weight: 700; margin-top: 5px; opacity: 0.8;">
                 ${b.category.toUpperCase()}
+            </div>
             </div>
         </div>
     `).join('');
 }
     function setCategory(cat) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active-cat', btn.innerText.includes(cat)));
-      renderBooks(document.getElementById("searchInput").value);
-    }
-
-   function showSection(type) {
-  // Sembunyikan/Tampilkan daftar buku dan bagian kelas
-  document.getElementById("bookList").classList.toggle("hidden", type !== 'books');
-  document.getElementById("kelasSection").classList.toggle("hidden", type !== 'kelas');
-  
-  // Fitur Baru: Sembunyikan kategori & search bar jika masuk ke menu 'kelas' (Sync)
-  const isBooks = type === 'books';
-  document.querySelector(".category-container").classList.toggle("hidden", !isBooks);
-  document.getElementById("searchInput").classList.toggle("hidden", !isBooks);
-  document.getElementById("bookCounter").classList.toggle("hidden", !isBooks);
-
-  // Update status aktif pada navbar
-  document.getElementById("nav-books").classList.toggle("active", type === 'books');
-  document.getElementById("nav-kelas").classList.toggle("active", type === 'kelas');
-  
-  if(type === 'kelas') setupKelasUI();
+     currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.toggle('active-cat', btn.innerText.includes(cat));
+    });
+    renderBooks(document.getElementById("searchInput").value);
 }
 
-    function setupKelasUI() {
-      const isGuru = localStorage.getItem("user_role") === "Guru";
-      document.getElementById("guruView").classList.toggle("hidden", !isGuru);
-      document.getElementById("muridView").classList.toggle("hidden", isGuru);
+ function showSection(type) {
+    const isBooks = type === 'books';
+    
+    // Sembunyikan/Tampilkan Section Utama
+    document.getElementById("bookSection").classList.toggle("hidden", !isBooks);
+    document.getElementById("kelasSection").classList.toggle("hidden", isBooks);
+    
+    // Sembunyikan/Tampilkan Header Search (Area Pencarian)
+    document.getElementById("searchArea").classList.toggle("hidden", !isBooks);
+
+    // Update State Navigasi
+    document.getElementById("nav-books").classList.toggle("active", isBooks);
+    document.getElementById("nav-kelas").classList.toggle("active", type === 'kelas');
+    
+    if(type === 'kelas') setupKelasUI();
+}
+
+// POV Guru: Tampilkan UI khusus guru dan mulai pantau jawaban otomatis
+   function setupKelasUI() {
+    const role = localStorage.getItem("user_role");
+    const isGuru = role === "Guru" || role === "Developer";
+    const isMurid = role === "Murid" || role === "Developer";
+
+    document.getElementById("guruView").classList.toggle("hidden", !isGuru);
+    document.getElementById("muridView").classList.toggle("hidden", !isMurid);
+
+    if (isGuru) {
+        if(window.pantuanInterval) clearInterval(window.pantuanInterval);
+        window.pantuanInterval = setInterval(pantauJawaban, 3000);
+        
+        // Generate random class code if empty
+        if(document.getElementById("activeCode").innerText === "-----") {
+            document.getElementById("activeCode").innerText = Math.random().toString(36).substring(2, 7).toUpperCase();
+        }
+    }
+}
+function updateClassStatus(status, content = "") {
+    const codeElement = document.getElementById("activeCode");
+    let currentCode = codeElement.innerText.trim();
+
+    // 1. Logika Auto-Generate Kode jika masih kosong
+    if ((status === "Presentasi" || status === "Kuis") && (currentCode === "-----" || currentCode === "")) {
+        currentCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+        codeElement.innerText = currentCode;
     }
 
-    function updateClassStatus(tipe, file = null) {
-      let code = document.getElementById("activeCode").innerText;
-      if (code === "-----" || tipe === 'Selesai') {
-        code = (tipe === 'Selesai') ? "-----" : Math.random().toString(36).substring(2, 7).toUpperCase();
-      }
-
-      fetch(FIREBASE_URL, { 
-        method: 'PUT', 
-        body: JSON.stringify({ code, status: tipe, file }) 
-      }).then(() => {
-        document.getElementById("activeCode").innerText = code;
-      });
+    if (status === "Selesai") {
+        fetch(FIREBASE_URL, {
+            method: 'PUT',
+            body: JSON.stringify({
+                status: "Selesai",
+                content: "",
+                code: "-----", 
+                file: ""
+            })
+        }).then(() => {
+            codeElement.innerText = "-----";
+            showToast("Sesi berhasil diakhiri! 👋");
+            if(window.pantuanInterval) clearInterval(window.pantuanInterval);
+            document.getElementById("listJawabanMurid").innerHTML = `<p style="font-size: 12px; color: var(--text-soft);">Sesi berakhir.</p>`;
+        });
+        return; // Berhenti di sini jika selesai
     }
 
-    function mulaiPresentasi() {
-      updateClassStatus("Presentasi", document.getElementById("pilihBuku").value);
-    }
+    fetch(FIREBASE_URL, {
+        method: 'PUT',
+        body: JSON.stringify({
+            status: status,
+            content: (status === "Kuis") ? content : "", // Jika kuis, content adalah soal
+            code: currentCode,
+            file: (status === "Presentasi") ? content : "" // Jika presentasi, content adalah nama file
+        })
+    })
+    .then(response => {
+        if(response.ok) {
+            showToast(`Mode ${status} Aktif!`);
+        }
+    })
+    .catch(err => {
+        console.error("Firebase Error:", err);
+        showToast("Gagal menyambung ke server");
+    });
+}
+
+function refreshKodeKelas() {
+    const baru = Math.random().toString(36).substring(2, 7).toUpperCase();
+    document.getElementById("activeCode").innerText = baru;
+    showToast("Kode kelas diperbarui! 🔑");
+}
+
+ function mulaiPresentasiPDF() {
+    const file = document.getElementById("selectFileBuku").value;
+    // Panggil updateClassStatus, dia akan otomatis buat kode jika belum ada
+    updateClassStatus("Presentasi", file);
+}
 
     function joinClass() {
-      const input = document.getElementById("inputClassCode").value.toUpperCase();
-      fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-        if (input === data.code) {
-          document.getElementById("joinArea").classList.add("hidden");
-          document.getElementById("liveClassArea").classList.remove("hidden");
-          syncInterval = setInterval(syncWithGuru, 3000);
-        } else { alert("Kode tidak valid!"); }
-      });
-    }
-
-    function syncWithGuru() {
-      fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-        document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
-        const container = document.getElementById("classContent");
-        if(data.status === "Presentasi") {
-          container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>`;
-        } else if(data.status === "Selesai") {
-    container.innerHTML = `
-        <div style="text-align:center; padding:20px;">
-            <h3 style="color:#ef4444;">Sesi Telah Berakhir</h3>
-            <p>Terima kasih telah mengikuti kelas ini.</p>
-        </div>`;
-    
-    // MUNCULKAN TOMBOL RESET
-    document.getElementById("resetMuridArea").classList.remove("hidden");
-    
-    clearInterval(syncInterval);
+    const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
+    fetch(FIREBASE_URL).then(res => res.json()).then(data => {
+        if (data && input === data.code) {
+            document.getElementById("joinArea").classList.add("hidden");
+            document.getElementById("liveClassArea").classList.remove("hidden");
+            syncInterval = setInterval(syncWithGuru, 3000);
+            showToast("Berhasil masuk kelas!");
+        } else {
+            showToast("Kode salah!");
+        }
+    });
 }
-      });
-    }
 
     // Fungsi untuk ganti tampilan input kuis di Guru
 function toggleQuizInput() {
@@ -196,66 +225,46 @@ function toggleQuizInput() {
 
 // Fungsi Guru mengirim kuis
 function mulaiQuiz() {
-    const tipe = document.getElementById("tipeQuiz").value;
-    let kontenKuis = "";
-    
-    if(tipe === 'manual') {
-        kontenKuis = document.getElementById("quizText").value;
-        if(!kontenKuis) return alert("Isi soal kuis dulu!");
-    } else {
-        kontenKuis = document.getElementById("pilihPdfQuiz").value;
-    }
-
-    updateClassStatus("Quiz", kontenKuis);
-    alert("Kuis berhasil dikirim ke murid!");
+    const soal = document.getElementById("quizText").value;
+    if(!soal) return showToast("Ketik soalnya dulu!");
+    updateClassStatus("Kuis", soal);
 }
 
 // Update fungsi syncWithGuru (POV Murid) agar bisa menampilkan teks atau PDF
 function syncWithGuru() {
     fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-        document.getElementById("currentStatus").innerText = "STATUS: " + data.status;
+        if (!data) return;
         const container = document.getElementById("classContent");
-        const studentName = localStorage.getItem("user_name");
-        const classCode = data.code; // Mengambil kode kelas yang aktif
-        
-        if(data.status === "Presentasi") {
-            container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>`;
-        } 
-        else if(data.status === "Quiz") {
-            // Cek apakah konten kuis berupa PDF atau Teks Manual
-            if(data.file.endsWith('.pdf')) {
-                container.innerHTML = `
-                    <div style="width:100%; text-align:left;">
-                        <p style="font-weight:bold; margin-bottom:10px;">📝 Kerjakan Soal PDF Berikut:</p>
-                        <iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:12px;"></iframe>
-                    </div>`;
-            } else {
-              container.innerHTML = `
-            <div style="padding:20px; background:white; border-radius:15px; width:100%; text-align:left; box-shadow:var(--shadow-sm);">
-            <p style="font-weight:800; color:var(--accent); margin-bottom:10px;">📝 SOAL KUIS:</p>
-            <p style="font-size:16px; white-space: pre-wrap;">${data.file}</p>
-            <hr style="margin:15px 0; opacity:0.1;">
-            <textarea id="jawabanMuridText" placeholder="Tulis jawabanmu di sini..." style="width:100%; height:100px; border-radius:10px; padding:10px; border:1px solid #ddd;"></textarea>
-            <button class="btn-main" style="margin-top:10px; background:var(--accent);" 
-                onclick="kirimJawabanKeGuru('${classCode}', '${studentName}')">Kirim Jawaban</button>
-        </div>`;
-            }
-        } 
-        else if(data.status === "Selesai") {
-    container.innerHTML = `
-        <div style="text-align:center; padding:20px;">
-            <h3 style="color:#ef4444;">Sesi Telah Berakhir</h3>
-            <p>Terima kasih telah mengikuti kelas ini.</p>
-        </div>`;
-    
-    // Munculin tombol masuk ulang
-    document.getElementById("resetMuridArea").classList.remove("hidden");
-    
-    // Stop sync
-    clearInterval(syncInterval);
-}
+        const statusText = document.getElementById("currentStatus");
+
+        if (data.status === "Presentasi") {
+            statusText.innerText = "GURU SEDANG PRESENTASI";
+            container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:15px;"></iframe>`;
+        } else if (data.status === "Quiz") {
+            statusText.innerText = "KUIS SEDANG BERLANGSUNG";
+            container.innerHTML = `
+                <div style="padding:20px; text-align:left;">
+                    <p style="font-weight:700; margin-bottom:15px;">Soal: ${data.content}</p>
+                    <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." style="width:100%; height:100px; padding:10px; border-radius:10px;"></textarea>
+                    <button class="btn-main" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')" style="margin-top:10px; width:100%;">Kirim Jawaban</button>
+                </div>`;
+        } else {
+            statusText.innerText = "MENUNGGU GURU...";
+            container.innerHTML = `<div style="padding:40px; text-align:center;">Sesi Belum Dimulai</div>`;
+        }
     });
 }
+
+function kirimJawabanKeGuru(code, nama) {
+    const isi = document.getElementById("jawabanMuridText").value;
+    if(!isi) return showToast("Tulis jawaban dulu!");
+    
+    fetch(`https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}/${nama}.json`, {
+        method: 'PUT',
+        body: JSON.stringify({ nama, jawaban: isi, waktu: new Date().toLocaleTimeString() })
+    }).then(() => showToast("Terkirim!"));
+}
+
 function kirimJawabanKeGuru(code, nama) {
     const isiJawaban = document.getElementById("jawabanMuridText").value;
     if(!isiJawaban) return showToast("Isi jawaban dulu!");
@@ -274,15 +283,11 @@ function kirimJawabanKeGuru(code, nama) {
     });
 }
 
-    function toggleTheme() {
-  const body = document.body;
-  const current = body.getAttribute('data-theme');
-  const newTheme = current === 'dark' ? 'light' : 'dark';
-  
-  body.setAttribute('data-theme', newTheme);
-  
-  // Opsional: Simpan pilihan tema di localStorage agar saat di-refresh tidak balik lagi
-  localStorage.setItem("theme", newTheme);
+  function toggleTheme() {
+    const current = document.body.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem("theme", next);
 }
 
 function applySavedTheme() {
@@ -292,18 +297,6 @@ function applySavedTheme() {
   }
 }
 
-function showToast(message) {
-    const toast = document.createElement("div");
-    toast.className = "toast";
-    toast.innerText = message;
-    document.body.appendChild(toast);
-    
-    toast.style.display = "block";
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 500);
-    }, 2000);
-}
 // Ganti fungsi alert bawaan dengan Toast yang lebih cantik
 function showToast(msg) {
     const toast = document.getElementById("toast");
@@ -325,20 +318,14 @@ function resetTampilanMurid() {
 }
 // Fungsi untuk menampilkan Detail Buku (Bottom Sheet)
 function openBookDetails(title, file, emoji, color) {
-    // Isi konten sheet
     document.getElementById("sheetTitle").innerText = title;
     document.getElementById("sheetEmoji").innerText = emoji;
-    document.getElementById("sheetCategory").innerText = "Koleksi " + (books.find(b => b.title === title).category);
-    
-    // Set tombol baca
+    document.getElementById("sheetCategory").innerText = "Materi Pelajaran";
     document.getElementById("btnReadNow").onclick = () => {
-    closeSheet();
-    // Simpan progress lanjut membaca
-    localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
-    window.open(`books/${file}`, '_blank');
-};
-
-    // Munculkan sheet
+        closeSheet();
+        localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
+        window.open(`books/${file}`, '_blank');
+    };
     document.getElementById("sheetOverlay").classList.add("active");
     document.getElementById("bottomSheet").classList.add("active");
 }
@@ -363,8 +350,7 @@ function closeSheet() {
 // Contoh penggunaan showToast pada login
 function handleLogin() {
     const userVal = document.getElementById("usernameInput").value.trim();
-    // Gunakan toLowerCase agar tidak sensitif huruf besar/kecil
-    const passVal = document.getElementById("passcodeInput").value.trim().toLowerCase();
+    const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
     
     if (passVal === "developer") {
         // Simpan status sebagai Developer
@@ -456,58 +442,43 @@ function initDeveloperMode() {
 }
 
 function pantauJawaban() {
-    const codeElement = document.getElementById("activeCode");
-    if(!codeElement) return;
-    
-    const code = codeElement.innerText;
+    const code = document.getElementById("activeCode").innerText;
     if(code === "-----") return;
 
-    const URL_AMBIL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}.json`;
-
-    fetch(URL_AMBIL_JAWABAN)
+    fetch(`https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}.json`)
     .then(res => res.json())
     .then(data => {
         const container = document.getElementById("listJawabanMurid");
-        const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 1;
         if(!data) {
-            container.innerHTML = `<p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban masuk...</p>`;
+            container.innerHTML = `<p style="font-size: 12px; opacity: 0.5;">Menunggu jawaban...</p>`;
             return;
         }
-
-        // Mengubah objek Firebase menjadi Array agar bisa di-render
-        const daftarJawaban = Object.keys(data).map(key => data[key]);
-
-        container.innerHTML = daftarJawaban.map(item => `
-            <div style="background: var(--input-bg); padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--accent); animation: fadeInUp 0.3s ease;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <b style="font-size: 13px; color: var(--text-main);">${item.nama}</b>
-                    <span style="font-size: 10px; color: var(--text-soft);">${item.waktu || ''}</span>
-                </div>
-                <p style="font-size: 14px; margin-top: 6px; color: var(--text-main); line-height: 1.4;">${item.jawaban}</p>
+        const html = Object.keys(data).map(key => `
+            <div class="answer-bubble animate" style="background:var(--input-bg); padding:10px; border-radius:12px; margin-bottom:8px;">
+                <div style="font-size:11px; font-weight:800; color:var(--accent);">👤 ${data[key].nama}</div>
+                <div style="font-size:13px; margin-top:4px;">${data[key].jawaban}</div>
             </div>
         `).join('');
-    })
-    .catch(err => console.error("Gagal mengambil jawaban:", err));
+        container.innerHTML = html;
+    });
 }
 
-function setupKelasUI() {
-    const isGuru = localStorage.getItem("user_role") === "Guru";
-    document.getElementById("guruView").classList.toggle("hidden", !isGuru);
-    document.getElementById("muridView").classList.toggle("hidden", isGuru);
-
-     // Jika login sebagai guru, cek jawaban otomatis setiap 3 detik
-    if(isGuru) {
-        // Hapus interval lama jika ada (mencegah penumpukan)
-        if(window.pantuanInterval) clearInterval(window.pantuanInterval);
-        
-        window.pantuanInterval = setInterval(pantauJawaban, 3000);
-    }
-}
 // Panggil fungsi applySavedTheme di window.onload
 window.onload = () => {
+    if (localStorage.getItem("theme")) document.body.setAttribute('data-theme', localStorage.getItem("theme"));
+    initApp();
+};
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
+}
   applySavedTheme();
   initApp();
-};
+
 
     function logout() {
       if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
