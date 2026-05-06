@@ -41,11 +41,21 @@ const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-south
         showToast("Kode akses salah!");
     }
 }
-       function updateOnlineStatus() {
+      function updateOnlineStatus() {
     const statusDiv = document.getElementById("connectionStatus");
     const isOnline = navigator.onLine;
+    const navKelas = document.getElementById("nav-kelas");
+
     statusDiv.innerText = isOnline ? "🌐 ONLINE: FITUR KELAS AKTIF" : "📡 OFFLINE: MODE BACA";
     statusDiv.style.color = isOnline ? "#10b981" : "#ef4444";
+
+    if (!isOnline) {
+        showSection('books'); // Paksa pindah ke koleksi buku jika sedang di kelas
+        navKelas.style.display = "none"; // Sembunyikan menu kelas
+        showToast("Mode Offline: Ruang kelas dinonaktifkan 🛑");
+    } else {
+        navKelas.style.display = "block"; // Munculkan kembali saat online
+    }
 }
 
 // Jalankan saat aplikasi pertama kali dibuka
@@ -76,13 +86,19 @@ updateOnlineStatus();
 
     / SISTEM BUKU LAH INTINYA /
   function renderBooks(kw) {
-    const list = document.getElementById("bookList");
+   const list = document.getElementById("bookList");
     const keyword = kw.toLowerCase();
 
-    const filtered = books.filter(b => 
-        b.title.toLowerCase().includes(keyword) || 
-        b.category.toLowerCase().includes(keyword)
-    );
+    const filtered = books.filter(b => {
+        const matchKeyword = b.title.toLowerCase().includes(keyword);
+        // Jika kategori "Semua", loloskan semua. Jika tidak, harus sama persis dengan currentCategory
+        const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
+        if (book.category === "Soal Latihan") {
+            return role === "guru" && matchCategory;
+        }
+        
+        return matchCategory;
+    });
 
     document.getElementById("bookCounter").innerText = `${filtered.length} materi ditemukan`;
     
@@ -233,53 +249,56 @@ function mulaiQuiz() {
 // Update fungsi syncWithGuru (POV Murid) agar bisa menampilkan teks atau PDF
 function syncWithGuru() {
     fetch(FIREBASE_URL).then(res => res.json()).then(data => {
-        if (!data) return;
+        if (!data || data.status === "Selesai") {
+            handleSesiBerakhir(); // Panggil fungsi pembersih jika sesi selesai
+            return;
+        }
+
         const container = document.getElementById("classContent");
         const statusText = document.getElementById("currentStatus");
 
+        // Pastikan pengecekan status sama dengan yang dikirim Guru ("Kuis")
         if (data.status === "Presentasi") {
             statusText.innerText = "GURU SEDANG PRESENTASI";
-            container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" style="border:none; border-radius:15px;"></iframe>`;
-        } else if (data.status === "Quiz") {
-            statusText.innerText = "KUIS SEDANG BERLANGSUNG";
+            container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" class="iframe"></iframe>`;
+        } 
+        else if (data.status === "Kuis") { // Ubah dari 'Quiz' ke 'Kuis' agar sinkron
+            statusText.innerText = "🚨 KUIS SEDANG BERLANGSUNG";
             container.innerHTML = `
-                <div style="padding:20px; text-align:left;">
-                    <p style="font-weight:700; margin-bottom:15px;">Soal: ${data.content}</p>
-                    <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." style="width:100%; height:100px; padding:10px; border-radius:10px;"></textarea>
-                    <button class="btn-main" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')" style="margin-top:10px; width:100%;">Kirim Jawaban</button>
+                <div style="padding:20px; text-align:left;" class="animate">
+                    <p style="font-weight:700; margin-bottom:15px; color: var(--text-main);">Soal: ${data.content}</p>
+                    <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." class="input-main" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+                    <button class="btn-main" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban</button>
                 </div>`;
         } else {
             statusText.innerText = "MENUNGGU GURU...";
-            container.innerHTML = `<div style="padding:40px; text-align:center;">Sesi Belum Dimulai</div>`;
+            container.innerHTML = `<div style="padding:40px; text-align:center; color: var(--text-soft);">Sesi Belum Dimulai</div>`;
         }
     });
 }
 
 function kirimJawabanKeGuru(code, nama) {
-    const isi = document.getElementById("jawabanMuridText").value;
-    if(!isi) return showToast("Tulis jawaban dulu!");
-    
-    fetch(`https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}/${nama}.json`, {
-        method: 'PUT',
-        body: JSON.stringify({ nama, jawaban: isi, waktu: new Date().toLocaleTimeString() })
-    }).then(() => showToast("Terkirim!"));
-}
-
-function kirimJawabanKeGuru(code, nama) {
     const isiJawaban = document.getElementById("jawabanMuridText").value;
-    if(!isiJawaban) return showToast("Isi jawaban dulu!");
+    
+    if(!isiJawaban) return showToast("Jawaban tidak boleh kosong!");
 
     const URL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}/${nama}.json`;
 
     fetch(URL_JAWABAN, {
         method: 'PUT',
         body: JSON.stringify({
-            nama: nama,
-            jawaban: isiJawaban,
+            nama: nama,       // WAJIB: Sesuai .validate di rules kamu
+            jawaban: isiJawaban, // WAJIB: Sesuai .validate di rules kamu
             waktu: new Date().toLocaleTimeString()
         })
-    }).then(() => {
-        showToast("Jawaban berhasil terkirim!");
+    })
+    .then(response => {
+        if(response.ok) {
+            showToast("Terkirim! Aman dari pembobolan 🛡️");
+            document.getElementById("jawabanMuridText").disabled = true;
+        } else {
+            showToast("Gagal: Rules menolak akses.");
+        }
     });
 }
 
@@ -411,6 +430,24 @@ function showInputKodeKelas() {
     
     // Kosongkan input kode
     document.getElementById("inputClassCode").value = "";
+}
+
+function handleSesiBerakhir() {
+   
+    if (syncInterval) clearInterval(syncInterval);
+    
+    
+    document.getElementById("currentStatus").innerText = "SESI TELAH BERAKHIR";
+    document.getElementById("classContent").innerHTML = `
+        <div style="padding:40px; text-align:center;">
+            <p style="margin-bottom:20px; color: var(--text-soft);">Guru telah mengakhiri sesi ini.</p>
+            <button onclick="location.reload()" class="btn-main">Keluar Kelas</button>
+        </div>
+    `;
+    
+    document.getElementById("resetMuridArea").classList.remove("hidden");
+    
+    showToast("Sesi belajar telah selesai! 👋");
 }
 
 function initDeveloperMode() {
