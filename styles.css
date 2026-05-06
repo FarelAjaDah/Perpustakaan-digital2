@@ -104,7 +104,8 @@
 
     input, select {
       width: 100%;
-      padding: 16px 20px;
+      max-width: 100%;
+      padding: 14px 16px;
       border-radius: 18px;
       border: 2px solid transparent;
       background: var(--input-bg);
@@ -392,4 +393,42 @@
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 768px) {
+    /* Perkecil ukuran header yang ke gedean */
+    .login-card h1 { font-size: 42px; }
+    .login-header h1 { font-size: 48px; }
+    .login-card { padding: 32px 20px; width: 90%; }
+
+    /* Atur grid buku agar pas 2 kolom di HP */
+    .books-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px; 
+        padding-bottom: 100px; 
+    }
+
+    /* Sesuaikan tombol agar tidak memakan tempat tapi tetap mudah ditekan (Touch Friendly) */
+    .btn-main { padding: 14px; font-size: 15px; }
+
+    .nav-bar { 
+        width: 95%; 
+        bottom: 15px; 
+        padding: 6px;
+    }
+    .nav-item { padding: 10px 5px; font-size: 12px; }
+
+    /* Container utama dikurangi paddingnya agar konten lebih luas */
+    .container { padding: 0 16px; }
+
+    /* Iframe PDF agar tingginya pas di layar HP */
+    .iframe { height: 500px; }
+}
+
+/* Untuk HP yang sangat kecil (misal iPhone SE) */
+@media (max-width: 375px) {
+    .books-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .book-card { padding: 12px; }
+    .book-cover { width: 48px; height: 48px; font-size: 20px; }
 }
