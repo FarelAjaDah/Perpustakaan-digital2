@@ -84,7 +84,7 @@ updateOnlineStatus();
     updateOnlineStatus();
 }
 
-    / SISTEM BUKU LAH INTINYA /
+    /* SISTEM BUKU LAH INTINYA */
   function renderBooks(kw) {
    const list = document.getElementById("bookList");
     const keyword = kw.toLowerCase();
@@ -93,8 +93,9 @@ updateOnlineStatus();
         const matchKeyword = b.title.toLowerCase().includes(keyword);
         // Jika kategori "Semua", loloskan semua. Jika tidak, harus sama persis dengan currentCategory
         const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
-        if (book.category === "Soal Latihan") {
-            return role === "guru" && matchCategory;
+        if (b.category === "Soal Latihan") {
+            const role = localStorage.getItem("user_role");
+            return role === "Guru" && matchCategory && matchKeyword;
         }
         
         return matchCategory;
@@ -354,70 +355,21 @@ function closeSheet() {
     document.getElementById("bottomSheet").classList.remove("active");
 }
 
-// Update fungsi renderBooks agar memanggil detail, bukan langsung buka file
 
-    document.getElementById("bookCounter").innerText = `${filtered.length} buku tersedia`;
-    list.innerHTML = filtered.map(b => `
-        <div class="book-card animate" onclick="openBookDetails('${b.title}', '${b.file}', '${b.emoji}', '${b.color}')">
-            <div class="book-cover" style="background: ${b.color}12; color: ${b.color};">${b.emoji}</div>
-            <div style="font-weight: 700; font-size: 14px;">${b.title}</div>
-            <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase; margin-top: 4px;">${b.category}</div>
-        </div>
-    `).join('');
-
-
-// Contoh penggunaan showToast pada login
-function handleLogin() {
-    const userVal = document.getElementById("usernameInput").value.trim();
-    const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
-    
-    if (passVal === "developer") {
-        // Simpan status sebagai Developer
-        localStorage.setItem("user_role", "Developer");
-        localStorage.setItem("user_name", userVal || "Admin Dev");
-        
-        // Sembunyikan login, tampilkan mainpage dulu
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("mainPage").classList.remove("hidden");
-        
-        // Baru jalankan fungsi sandbox
-        initApp(); // Inisialisasi data dasar
-        initDeveloperMode(); 
-        showToast("Mode Developer Aktif! 🛠️");
-    } 
-    else if (ACCESS_KEYS[passVal.toUpperCase()]) {
-        // Login murid/guru biasa
-        localStorage.setItem("user_role", ACCESS_KEYS[passVal.toUpperCase()]);
-        localStorage.setItem("user_name", userVal || "User");
-        initApp();
-        showToast("Selamat datang!");
-    } 
-    else {
-        showToast("Kode akses salah!");
-    }
+function logout() {
+    if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
 }
 
-// Fungsi "Satpam" File
 async function amanBukaBuku(fileName) {
     try {
-        // Melakukan fetch ringan untuk cek status file
         const response = await fetch(`books/${fileName}`, { method: 'HEAD' });
-        document.getElementById("btnReadNow").onclick = () => {
-    closeSheet();
-    localStorage.setItem("last_read", JSON.stringify({title, file, emoji, color}));
-    // Memanggil fungsi pengecekan file
-    amanBukaBuku(file); 
-};
         
         if (response.ok) {
-            // Jika file ditemukan, jalankan fungsi buka buku yang sudah ada
             window.open(`books/${fileName}`, '_blank');
         } else {
-            // Jika file tidak ada (Error 404)
             showToast("⚠️ File belum diunduh atau tidak ditemukan.");
         }
     } catch (err) {
-        // Jika offline total atau ada masalah sistem
         showToast("❌ Gagal memuat file secara offline.");
     }
 }
@@ -502,25 +454,16 @@ function pantauJawaban() {
 
 // Panggil fungsi applySavedTheme di window.onload
 window.onload = () => {
-    if (localStorage.getItem("theme")) document.body.setAttribute('data-theme', localStorage.getItem("theme"));
+    applySavedTheme();
     initApp();
 };
 
-window.addEventListener('online', updateOnlineStatus);
-window.addEventListener('offline', updateOnlineStatus);
+function logout() {
+    if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
+}
 
 // Service Worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
-}
-  applySavedTheme();
-  initApp();
-
-
-    function logout() {
-      if(confirm("Keluar?")) { localStorage.clear(); location.reload(); }
-    }
-    if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .then(reg => console.log('Sistem Offline Aktif!', reg))
