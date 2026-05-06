@@ -27,7 +27,7 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Tambahkan baris ini
   );
 });
 
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
       return fetch(event.request).then((networkResponse) => {
         // Hanya simpan file yang sukses (status 200)
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          // Jika itu file PDF, kita tetap coba simpan
+          // Jika itu file PDF, cobain simpen
           if (event.request.url.includes('.pdf')) {
              return saveToCache(event.request, networkResponse);
           }
@@ -74,5 +74,5 @@ function saveToCache(request, response) {
   return response;
 }
 
-[// 27 april 2026 = terakhir edit } 
+[// 30 april 2026 = terakhir edit } 
   ]
