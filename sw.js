@@ -1,10 +1,11 @@
-const CACHE_NAME = 'pustaka-furina-v4'; // Ganti nama versi agar browser update
+const CACHE_NAME = 'pustaka-furina-v5'; // jangan lupa ganti versi mas
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
   './script.js',
-  './manifest.json'
+  './manifest.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 ];
 
 // Install & Precaching file inti
@@ -74,5 +75,5 @@ function saveToCache(request, response) {
   return response;
 }
 
-[// 30 april 2026 = terakhir edit } 
+[// 6 mei 2026 = terakhir edit } 
   ]
