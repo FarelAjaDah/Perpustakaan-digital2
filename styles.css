@@ -432,3 +432,13 @@
     .book-card { padding: 12px; }
     .book-cover { width: 48px; height: 48px; font-size: 20px; }
 }
+
+/* Update class animate yang sudah kamu punya */
+.animate {
+    animation: fadeInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* Tambahkan efek transisi pada body untuk kenyamanan visual */
+#bookSection, #kelasSection {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
