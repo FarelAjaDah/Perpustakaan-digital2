@@ -17,6 +17,9 @@ const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-south
       {title: "detective conan", file: "conan.pdf", emoji: "🕵️‍♂️", color: "#10b981", category: "Komik" },
       {title: "Kubo wont let me be invisible", file: "kubo.pdf", emoji: "👻", color: "#ef4444", category: "Novel" },
       {title: "Stop Overthinking", file: "stop.pdf", emoji: "🧠", color: "#6366f1", category: "Novel" },
+      {title: "Soal geografi 11", file: "geografi 11.pdf", emoji: "🗺️", color: "#f59e0b", category: "Ujian" },
+      {title: "Soal OSN TINGKAT KOTA", file: "osn-kota.pdf", emoji: "🏆", color: "#f97316", category: "Ujian" },
+      {title: "soal latihan sosiologi 11", file: "sosiologi 11.pdf", emoji: "👥", color: "#10b981", category: "Soal Latihan" }
     ];
 
     let currentCategory = "Semua";
@@ -72,6 +75,13 @@ updateOnlineStatus();
         document.getElementById("loginPage").classList.remove("hidden");
         return;
     }
+    const devFab = document.getElementById("devFab");
+    if (role === "Developer" || role === "Guru") { // Sesuaikan siapa yang boleh akses
+        devFab.classList.remove("hidden");
+    } else {
+        devFab.classList.add("hidden");
+    }
+
 
     // Jika sudah login
     document.getElementById("loginPage").classList.add("hidden");
@@ -87,6 +97,7 @@ updateOnlineStatus();
     /* SISTEM BUKU LAH INTINYA */
   function renderBooks(kw) {
    const list = document.getElementById("bookList");
+   const role = localStorage.getItem("user_role");
     const keyword = kw.toLowerCase();
 
     const filtered = books.filter(b => {
@@ -96,6 +107,9 @@ updateOnlineStatus();
         if (b.category === "Soal Latihan") {
             const role = localStorage.getItem("user_role");
             return role === "Guru" && matchCategory && matchKeyword;
+            if (b.category === "Ujian" && role !== "Guru") {
+            return false; // Murid tidak bisa lihat kategori " Ujian "
+        }
         }
         
         return matchCategory;
@@ -248,6 +262,7 @@ function mulaiQuiz() {
 }
 
 // Update fungsi syncWithGuru (POV Murid) agar bisa menampilkan teks atau PDF
+let lastStatus = "";
 function syncWithGuru() {
     fetch(FIREBASE_URL).then(res => res.json()).then(data => {
         if (!data || data.status === "Selesai") {
@@ -257,6 +272,10 @@ function syncWithGuru() {
 
         const container = document.getElementById("classContent");
         const statusText = document.getElementById("currentStatus");
+        if (data.status !== lastStatus) {
+            showToast(`Status berubah: ${data.status}`);
+            lastStatus = data.status;
+        }
 
         // Pastikan pengecekan status sama dengan yang dikirim Guru ("Kuis")
         if (data.status === "Presentasi") {
@@ -264,7 +283,8 @@ function syncWithGuru() {
             container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="400px" class="iframe"></iframe>`;
         } 
         else if (data.status === "Kuis") { // Ubah dari 'Quiz' ke 'Kuis' agar sinkron
-            statusText.innerText = "🚨 KUIS SEDANG BERLANGSUNG";
+            statusText.innerText = "KUIS SEDANG BERLANGSUNG😨😨";
+            const isPdf = typeof data.content === 'object' && data.content.tipe === "pdf";
             container.innerHTML = `
                 <div style="padding:20px; text-align:left;" class="animate">
                     <p style="font-weight:700; margin-bottom:15px; color: var(--text-main);">Soal: ${data.content}</p>
@@ -450,6 +470,78 @@ function pantauJawaban() {
         `).join('');
         container.innerHTML = html;
     });
+}
+
+function toggleDevMenu() {
+    const menu = document.getElementById("devMenu");
+    menu.classList.toggle("hidden");
+}
+
+function quickSwitch(newRole) {
+    localStorage.setItem("user_role", newRole);
+    localStorage.setItem("user_name", "Dev " + newRole);
+    
+    // Refresh UI tanpa reload halaman penuh
+    initApp(); 
+    showSection('kelas'); // Langsung buka fitur kelas untuk testing
+    toggleDevMenu(); // Tutup menu dev
+    
+    showToast(`Mode ${newRole} mode hengker aktif!`);
+}
+
+// Tunggu sampai DOM selesai dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    // Tentukan area mana yang bisa digeser 
+    const mainContent = document.body;
+    const mc = new Hammer(mainContent);
+
+    // Deteksi geser ke KIRI (pindah ke Ruang Kelas)
+    mc.on("swipeleft", () => {
+        const role = localStorage.getItem("user_role");
+        if (role) { // Pastikan sudah login
+            showSection('kelas');
+            showToast("Pindah ke Ruang Kelas ");
+        }
+    });
+
+    // Deteksi geser ke KANAN
+    mc.on("swiperight", () => {
+        const role = localStorage.getItem("user_role");
+        if (role) {
+            showSection('books');
+            showToast("Kembali ke Koleksi Buku");
+        }
+    });
+});
+
+//  Buat QR Code saat sesi dimulai
+function generateQR(code) {
+    document.getElementById("qrcode").innerHTML = ""; // Bersihkan
+    new QRCode(document.getElementById("qrcode"), {
+        text: code,
+        width: 128,
+        height: 128
+    });
+}
+
+// Mulai Scan Kamera
+function startScan() {
+    const reader = document.getElementById("reader");
+    reader.classList.remove("hidden");
+    
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" }, // Pakai kamera belakang
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+            // Jika berhasil scan
+            document.getElementById("joinCode").value = decodedText;
+            html5QrCode.stop(); // Matikan kamera
+            reader.classList.add("hidden");
+            joinKelas(); // Langsung otomatis gabung
+        },
+        (errorMessage) => { /* abaikan error nyari qr */ }
+    ).catch(err => alert("Gagal buka kamera: " + err));
 }
 
 // Panggil fungsi applySavedTheme di window.onload
