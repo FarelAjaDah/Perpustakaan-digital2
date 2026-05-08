@@ -1,8 +1,8 @@
 // ==============================================
-//  PUSTAKA FURINA v4 - script.js
-//  Last Updated: 7 Mei 2026
+//  PUSTAKA FURINA v5 - script.js
+//  Last Updated: 8 Mei 2026
 // ==============================================
-// ANJAY KEREN GAK SIH? :D
+
 const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
 
 const ACCESS_KEYS = {
@@ -11,29 +11,30 @@ const ACCESS_KEYS = {
 };
 
 const books = [
-  { title: "Matematika",          file: "matematika.pdf",    emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
-  { title: "Sejarah",             file: "sejarah.pdf",       emoji: "📜", color: "#f59e0b", category: "Pelajaran" },
-  { title: "Biologi",             file: "biologi.pdf",       emoji: "🧬", color: "#10b981", category: "Pelajaran" },
-  { title: "Bahasa Jepang",       file: "jp.pdf",            emoji: "🗾", color: "#ef4444", category: "Pelajaran" },
-  { title: "Fisika",              file: "fisika.pdf",        emoji: "🔬", color: "#6366f1", category: "Pelajaran" },
-  { title: "Kimia",               file: "kimia.pdf",         emoji: "⚗️", color: "#f97316", category: "Pelajaran" },
-  { title: "One Piece",           file: "op.pdf",            emoji: "🏴‍☠️", color: "#ef4444", category: "Komik"    },
-  { title: "Solo Leveling",       file: "sl.pdf",            emoji: "⚔️", color: "#6366f1", category: "Komik"    },
-  { title: "Detective Conan",     file: "conan.pdf",         emoji: "🕵️", color: "#10b981", category: "Komik"    },
-  { title: "Laskar Pelangi",      file: "lp.pdf",            emoji: "🌈", color: "#10b981", category: "Novel"    },
-  { title: "Harry Potter",        file: "hp.pdf",            emoji: "⚡", color: "#475569", category: "Novel"    },
-  { title: "Laut Bercerita",      file: "laut.pdf",          emoji: "🌊", color: "#3b82f6", category: "Novel"    },
-  { title: "Dilan 1990",          file: "dilan.pdf",         emoji: "🏍️", color: "#f59e0b", category: "Novel"    },
-  { title: "Kubo Won't Let Me...",file: "kubo.pdf",          emoji: "👻", color: "#ef4444", category: "Novel"    },
-  { title: "Stop Overthinking",   file: "stop.pdf",          emoji: "🧠", color: "#6366f1", category: "Novel"    },
-  { title: "Soal Geografi 11",    file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
-  { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",    emoji: "🏆", color: "#f97316", category: "Ujian"    },
-  { title: "Latihan Sosiologi 11",file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
+  { title: "Matematika",           file: "matematika.pdf",    emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
+  { title: "Sejarah",              file: "sejarah.pdf",       emoji: "📜", color: "#f59e0b", category: "Pelajaran" },
+  { title: "Biologi",              file: "biologi.pdf",       emoji: "🧬", color: "#10b981", category: "Pelajaran" },
+  { title: "Bahasa Jepang",        file: "jp.pdf",            emoji: "🗾", color: "#ef4444", category: "Pelajaran" },
+  { title: "Fisika",               file: "fisika.pdf",        emoji: "🔬", color: "#6366f1", category: "Pelajaran" },
+  { title: "Kimia",                file: "kimia.pdf",         emoji: "⚗️", color: "#f97316", category: "Pelajaran" },
+  { title: "One Piece",            file: "op.pdf",            emoji: "🏴‍☠️", color: "#ef4444", category: "Komik"    },
+  { title: "Solo Leveling",        file: "sl.pdf",            emoji: "⚔️", color: "#6366f1", category: "Komik"    },
+  { title: "Detective Conan",      file: "conan.pdf",         emoji: "🕵️", color: "#10b981", category: "Komik"    },
+  { title: "Laskar Pelangi",       file: "lp.pdf",            emoji: "🌈", color: "#10b981", category: "Novel"    },
+  { title: "Harry Potter",         file: "hp.pdf",            emoji: "⚡", color: "#475569", category: "Novel"    },
+  { title: "Laut Bercerita",       file: "laut.pdf",          emoji: "🌊", color: "#3b82f6", category: "Novel"    },
+  { title: "Dilan 1990",           file: "dilan.pdf",         emoji: "🏍️", color: "#f59e0b", category: "Novel"    },
+  { title: "Kubo Won't Let Me...", file: "kubo.pdf",          emoji: "👻", color: "#ef4444", category: "Novel"    },
+  { title: "Stop Overthinking",    file: "stop.pdf",          emoji: "🧠", color: "#6366f1", category: "Novel"    },
+  { title: "Soal Geografi 11",     file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
+  { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",      emoji: "🏆", color: "#f97316", category: "Ujian"    },
+  { title: "Latihan Sosiologi 11", file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
 ];
 
 let currentCategory = "Semua";
 let syncInterval = null;
 let lastStatus = "";
+
 
 
 //  AUTH & INIT
@@ -70,7 +71,6 @@ function initApp() {
     return;
   }
 
-  // Tampilkan/sembunyikan FAB developer
   const devFab = document.getElementById("devFab");
   if (role === "Developer" || role === "Guru") {
     devFab.classList.remove("hidden");
@@ -83,31 +83,9 @@ function initApp() {
 
   document.getElementById("roleBadge").innerText = role.toUpperCase();
   document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
-  function renderLastRead() {
-    const lastReadData = localStorage.getItem("last_read_book");
-    const container = document.getElementById("lastReadContainer");
-    const cardPlace = document.getElementById("lastReadCard");
-
-    if (lastReadData) {
-        const book = JSON.parse(lastReadData);
-        container.classList.remove("hidden");
-        cardPlace.innerHTML = `
-            <div onclick="openBook('${book.file}', '${book.title}', '${book.emoji}')" 
-                 style="background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); cursor: pointer;">
-                <div style="font-size: 30px;">${book.emoji}</div>
-                <div style="flex: 1;">
-                    <h4 style="margin: 0; font-size: 14px;">${book.title}</h4>
-                    <p style="margin: 0; font-size: 11px; color: var(--text-soft);">Klik untuk lanjut membaca</p>
-                </div>
-                <div style="color: var(--accent); font-size: 20px;">➔</div>
-            </div>
-        `;
-    }
-}
-
 
   renderBooks("");
-  renderLastRead();
+  renderLastRead(); 
   updateOnlineStatus();
 }
 
@@ -121,12 +99,11 @@ function logout() {
 }
 
 
-//  STATUS INDIHOME!!!!!!!!!!!
+//  STATUS INDIHOME!!!!
 function updateOnlineStatus() {
   const statusDiv = document.getElementById("connectionStatus");
   const navKelas = document.getElementById("nav-kelas");
 
-  // Guard: pastikan elemen ada sebelum diakses
   if (!statusDiv || !navKelas) return;
 
   const isOnline = navigator.onLine;
@@ -142,7 +119,8 @@ function updateOnlineStatus() {
 }
 
 
-//  BUKU & KOLEKSI
+
+//  BUKU & KOLEKSI BO....OOKS
 function renderBooks(kw) {
   const list = document.getElementById("bookList");
   const role = localStorage.getItem("user_role");
@@ -181,29 +159,35 @@ function setCategory(cat) {
   renderBooks(document.getElementById("searchInput").value);
 }
 
+// terakhir di gidaw
 function renderLastRead() {
-  const lastRead = localStorage.getItem("last_read");
-  if (!lastRead) return;
+  const lastReadData = localStorage.getItem("last_read_book");
+  const container = document.getElementById("lastReadContainer");
+  const cardPlace = document.getElementById("lastReadCard");
 
-  try {
-    const book = JSON.parse(lastRead);
-    const container = document.getElementById("continueReading");
-    const card = document.getElementById("lastReadCard");
+  if (!container || !cardPlace) return;
 
-    card.innerHTML = `
-      <div class="book-card" style="display:flex; align-items:center; gap:16px; text-align:left;"
-           onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '${book.color}')">
-        <div class="book-cover" style="min-width:52px; height:52px; background:${book.color}20; color:${book.color}; margin:0; border-radius:16px;">
-          ${book.emoji}
+  if (lastReadData) {
+    try {
+      const book = JSON.parse(lastReadData);
+      container.classList.remove("hidden");
+      cardPlace.innerHTML = `
+        <div onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '')"
+             style="background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); cursor: pointer;">
+          <div style="font-size: 30px;">${book.emoji}</div>
+          <div style="flex: 1;">
+            <h4 style="margin: 0; font-size: 14px;">${book.title}</h4>
+            <p style="margin: 0; font-size: 11px; color: var(--text-soft);">Klik untuk lanjut membaca</p>
+          </div>
+          <div style="color: var(--accent); font-size: 20px;">➔</div>
         </div>
-        <div>
-          <div style="font-weight:800; font-size:14px;">${book.title}</div>
-          <div style="font-size:11px; color:var(--text-soft); margin-top:2px;">Terakhir dibaca • Ketuk untuk lanjut</div>
-        </div>
-      </div>`;
-    container.classList.remove("hidden");
-  } catch (e) {
-    localStorage.removeItem("last_read");
+      `;
+    } catch (e) {
+      localStorage.removeItem("last_read_book");
+      container.classList.add("hidden");
+    }
+  } else {
+    container.classList.add("hidden");
   }
 }
 
@@ -222,37 +206,8 @@ function showSection(type) {
   if (type === 'kelas') setupKelasUI();
 }
 
-
-//  BUKU JENDELA KAMAR YAHAHA ( SISTEM SHEET )
-function openBookDetails(title, file, emoji, color) {
-  document.getElementById("sheetTitle").innerText = title;
-  document.getElementById("sheetEmoji").innerText = emoji;
-  
-  // Cari kategori dari data buku
-  const bookData = books.find(b => b.file === file);
-  document.getElementById("sheetCategory").innerText = bookData ? bookData.category : "Materi";
-
-  document.getElementById("btnReadNow").onclick = () => {
-    closeSheet();
-    localStorage.setItem("last_read", JSON.stringify({ title, file, emoji, color }));
-    amanBukaBuku(file);
-  };
-    const lastRead = { file, title, emoji, time: new Date().getTime() };
-    localStorage.setItem("last_read_book", JSON.stringify(lastRead));
-
-    const url = `books/${file}`;
-    const container = document.getElementById("sheetContent");
-    container.innerHTML = `
-        <div style="height: 70vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
-            <iframe src="${url}" width="100%" height="100%" style="border:none; border-radius:15px;"></iframe>
-        </div>
-        <button onclick="closeSheet()" class="btn-main" style="margin-top:20px; background:var(--text-soft);">Tutup</button>
-    `;
-
-    openSheet();
-    
-    renderLastRead();
-
+//  BOTTOM SHEET
+function openSheet() {
   document.getElementById("sheetOverlay").classList.add("active");
   document.getElementById("bottomSheet").classList.add("active");
 }
@@ -260,6 +215,35 @@ function openBookDetails(title, file, emoji, color) {
 function closeSheet() {
   document.getElementById("sheetOverlay").classList.remove("active");
   document.getElementById("bottomSheet").classList.remove("active");
+}
+
+function openBookDetails(title, file, emoji, color) {
+  document.getElementById("sheetTitle").innerText = title;
+  document.getElementById("sheetEmoji").innerText = emoji;
+
+  const bookData = books.find(b => b.file === file);
+  document.getElementById("sheetCategory").innerText = bookData ? bookData.category : "Materi";
+
+  // last_read_book disimpan hanya saat tombol "Buka Sekarang" diklik,
+  // bukan saat sheet dibuka. Supaya riwayat baca akurat.
+  document.getElementById("btnReadNow").onclick = () => {
+    closeSheet();
+    const lastRead = { file, title, emoji, time: new Date().getTime() };
+    localStorage.setItem("last_read_book", JSON.stringify(lastRead));
+    renderLastRead();
+    amanBukaBuku(file);
+  };
+
+  const url = `books/${file}`;
+  const container = document.getElementById("sheetContent");
+  container.innerHTML = `
+    <div style="height: 70vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
+      <iframe src="${url}" width="100%" height="100%" style="border:none; border-radius:15px;"></iframe>
+    </div>
+    <button onclick="closeSheet()" class="btn-main" style="margin-top:20px; background:var(--text-soft);">Tutup</button>
+  `;
+
+  openSheet();
 }
 
 async function amanBukaBuku(fileName) {
@@ -271,13 +255,11 @@ async function amanBukaBuku(fileName) {
       showToast("⚠️ File belum tersedia atau tidak ditemukan.");
     }
   } catch (err) {
-    // Fallback: coba buka langsung (mungkin offline dari cache SW)
     window.open(`books/${fileName}`, '_blank');
   }
 }
 
-
-//  RUANG KELAS - SETUP
+//  RUANG KELAS - SETUP GAMING
 function setupKelasUI() {
   const role = localStorage.getItem("user_role");
   const isGuru = role === "Guru" || role === "Developer";
@@ -391,7 +373,7 @@ function pantauJawaban() {
     .catch(() => { /* silent fail saat offline */ });
 }
 
-//  RUANG KELAS - BAGIAN ANAK KECIL (MURID)
+//  RUANG KELAS - ANAK KECIL NONTON PENDIDIKAN (MURID)
 function joinClass() {
   const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
   if (!input) return showToast("Masukkan kode kelas dulu!");
@@ -410,6 +392,28 @@ function joinClass() {
     })
     .catch(() => showToast("❌ Tidak bisa terhubung. Periksa koneksi."));
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    if (syncInterval) clearInterval(syncInterval);
+    if (window.pantuanInterval) clearInterval(window.pantuanInterval);
+  } else {
+    const role = localStorage.getItem("user_role");
+    if (!role) return;
+    // Resume polling murid jika sedang di kelas
+    const liveArea = document.getElementById("liveClassArea");
+    if (liveArea && !liveArea.classList.contains("hidden")) {
+      if (!syncInterval) syncInterval = setInterval(syncWithGuru, 3000);
+    }
+    // Resume polling guru jika panel guru aktif
+    if ((role === "Guru" || role === "Developer")) {
+      const guruView = document.getElementById("guruView");
+      if (guruView && !guruView.classList.contains("hidden")) {
+        if (!window.pantuanInterval) window.pantuanInterval = setInterval(pantauJawaban, 3000);
+      }
+    }
+  }
+});
 
 function syncWithGuru() {
   fetch(FIREBASE_URL)
@@ -482,7 +486,7 @@ function kirimJawabanKeGuru(code, nama) {
 }
 
 function handleSesiBerakhir() {
-  if (syncInterval) clearInterval(syncInterval);
+  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   lastStatus = "";
 
   document.getElementById("currentStatus").innerText = "✅ SESI TELAH BERAKHIR";
@@ -505,71 +509,66 @@ function showInputKodeKelas() {
 
 function resetTampilanMurid() {
   document.getElementById("resetMuridArea").classList.add("hidden");
-  if (syncInterval) clearInterval(syncInterval);
+  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   showInputKodeKelas();
   showToast("Silakan masuk ke kelas baru.");
 }
 
-//  QR QRISS AWKAWOKAOWKO
+//  QRISS
 function generateQR(code) {
   const el = document.getElementById("qrcode");
   el.innerHTML = "";
   new QRCode(el, { text: code, width: 128, height: 128 });
 }
 
-let html5QrCode = null;
+let html5QrScanner = null;
 
 function startScan() {
+  if (html5QrScanner) return; // Cegah double-init jika tombol diklik dua kali
+
   const reader = document.getElementById("reader");
   reader.classList.remove("hidden");
 
-  const html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
+  if (!document.getElementById("btnStopScan")) {
+    const stopBtn = document.createElement("button");
+    stopBtn.id = "btnStopScan";
+    stopBtn.innerHTML = "❌ Batalkan Scan";
+    stopBtn.className = "btn-main";
+    stopBtn.style.cssText = "margin-top: 10px; background: #ef4444;";
+    stopBtn.onclick = stopScan;
+    reader.parentNode.insertBefore(stopBtn, reader.nextSibling);
+  }
+
+  html5QrScanner = new Html5Qrcode("reader");
+  html5QrScanner.start(
     { facingMode: "environment" },
     { fps: 10, qrbox: { width: 250, height: 250 } },
     (decodedText) => {
+      // FIX #5: Tulis ke #inputClassCode supaya joinClass() bisa baca
       document.getElementById("inputClassCode").value = decodedText;
-      html5QrCode.stop().then(() => {
-        reader.classList.add("hidden");
-        joinClass();
-      });
-    },
-    () => { /* abaikan error scanning */ }
-  ).catch(err => showToast("Gagal buka kamera: " + err));
-  if (!document.getElementById("btnStopScan")) {
-        const stopBtn = document.createElement("button");
-        stopBtn.id = "btnStopScan";
-        stopBtn.innerHTML = "❌ Batalkan Scan";
-        stopBtn.className = "btn-main";
-        stopBtn.style = "margin-top: 10px; background: #ef4444;";
-        stopBtn.onclick = stopScan;
-        reader.parentNode.insertBefore(stopBtn, reader.nextSibling);
+      stopScan();
+      joinClass();
     }
-
-    html5QrScanner = new Html5Qrcode("reader");
-    html5QrScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-            document.getElementById("joinCode").value = decodedText;
-            stopScan(); // Matikan setelah berhasil
-            joinKelas();
-        }
-    ).catch(err => console.error("Kamera gagal:", err));
+  ).catch(err => {
+    showToast("Gagal buka kamera: " + err);
+    stopScan();
+  });
 }
 
 function stopScan() {
-    if (html5QrScanner) {
-        html5QrScanner.stop().then(() => {
-            document.getElementById("reader").classList.add("hidden");
-            const btn = document.getElementById("btnStopScan");
-            if (btn) btn.remove();
-        });
-    }
-
+  if (html5QrScanner) {
+    html5QrScanner.stop().then(() => {
+      html5QrScanner = null;
+      document.getElementById("reader").classList.add("hidden");
+      const btn = document.getElementById("btnStopScan");
+      if (btn) btn.remove();
+    }).catch(() => {
+      html5QrScanner = null;
+    });
+  }
 }
 
-//  TEMA HITAM
+//  TEMA
 function toggleTheme() {
   const current = document.body.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
@@ -583,7 +582,6 @@ function applySavedTheme() {
 }
 
 //  TOAST NOTIFICATION
-
 function showToast(msg) {
   const toast = document.getElementById("toast");
   toast.innerText = msg;
@@ -606,17 +604,22 @@ function quickSwitch(newRole) {
   showToast(`Switched ke role: ${newRole} 🛠️`);
 }
 
-
 function initDeveloperMode() {
   console.log("[DEV MODE] Developer mode aktif.");
-  // Developer punya akses ke devFab (tombol switch role) yang ada di HTML
 }
 
-//  GESER - Geser TIPIS (Hammer.js)
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+  }
+}
+
+//  EVENT LISTENERS & INIT
 document.addEventListener("DOMContentLoaded", () => {
   applySavedTheme();
 
-  // Inisialisasi Hammer untuk swipe
   const mc = new Hammer(document.body);
   mc.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
@@ -632,24 +635,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Enter key untuk login
+  document.getElementById("usernameInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleLogin();
+  });
   document.getElementById("passcodeInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
 });
 
-function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
-
-
-//  INIT ON LOAD
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 
@@ -658,7 +651,6 @@ window.onload = () => {
   initApp();
 };
 
-//  SERVICE WORKER
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
