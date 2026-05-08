@@ -1,6 +1,6 @@
 // ==============================================
-//  PUSTAKA FURINA v5 - script.js
-//  Last Updated: 6 Mei 2026
+//  PUSTAKA FURINA v4 - script.js
+//  Last Updated: 7 Mei 2026
 // ==============================================
 // ANJAY KEREN GAK SIH? :D
 const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
@@ -237,17 +237,21 @@ function openBookDetails(title, file, emoji, color) {
     localStorage.setItem("last_read", JSON.stringify({ title, file, emoji, color }));
     amanBukaBuku(file);
   };
-  const lastRead = { file, title, emoji, time: new Date().getTime() };
+    const lastRead = { file, title, emoji, time: new Date().getTime() };
     localStorage.setItem("last_read_book", JSON.stringify(lastRead));
+
     const url = `books/${file}`;
-    document.getElementById("sheetContent").innerHTML = `
-        <div style="height: 80vh;">
+    const container = document.getElementById("sheetContent");
+    container.innerHTML = `
+        <div style="height: 70vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
             <iframe src="${url}" width="100%" height="100%" style="border:none; border-radius:15px;"></iframe>
         </div>
+        <button onclick="closeSheet()" class="btn-main" style="margin-top:20px; background:var(--text-soft);">Tutup</button>
     `;
-    // Update tampilan "Lanjutkan Membaca" di dashboard
-    renderLastRead();
 
+    openSheet();
+    
+    renderLastRead();
 
   document.getElementById("sheetOverlay").classList.add("active");
   document.getElementById("bottomSheet").classList.add("active");
@@ -513,6 +517,8 @@ function generateQR(code) {
   new QRCode(el, { text: code, width: 128, height: 128 });
 }
 
+let html5QrCode = null;
+
 function startScan() {
   const reader = document.getElementById("reader");
   reader.classList.remove("hidden");
@@ -530,6 +536,37 @@ function startScan() {
     },
     () => { /* abaikan error scanning */ }
   ).catch(err => showToast("Gagal buka kamera: " + err));
+  if (!document.getElementById("btnStopScan")) {
+        const stopBtn = document.createElement("button");
+        stopBtn.id = "btnStopScan";
+        stopBtn.innerHTML = "❌ Batalkan Scan";
+        stopBtn.className = "btn-main";
+        stopBtn.style = "margin-top: 10px; background: #ef4444;";
+        stopBtn.onclick = stopScan;
+        reader.parentNode.insertBefore(stopBtn, reader.nextSibling);
+    }
+
+    html5QrScanner = new Html5Qrcode("reader");
+    html5QrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+            document.getElementById("joinCode").value = decodedText;
+            stopScan(); // Matikan setelah berhasil
+            joinKelas();
+        }
+    ).catch(err => console.error("Kamera gagal:", err));
+}
+
+function stopScan() {
+    if (html5QrScanner) {
+        html5QrScanner.stop().then(() => {
+            document.getElementById("reader").classList.add("hidden");
+            const btn = document.getElementById("btnStopScan");
+            if (btn) btn.remove();
+        });
+    }
+
 }
 
 //  TEMA HITAM
@@ -600,6 +637,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") handleLogin();
   });
 });
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
 
 
 //  INIT ON LOAD
