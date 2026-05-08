@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pustaka-furina-v4'; // jangan lupa ganti versi mas
+const CACHE_NAME = 'pustaka-furina-v5'; // jangan lupa ganti versi mas
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
