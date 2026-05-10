@@ -224,8 +224,16 @@ function openBookDetails(title, file, emoji, color) {
   const bookData = books.find(b => b.file === file);
   document.getElementById("sheetCategory").innerText = bookData ? bookData.category : "Materi";
 
-  // last_read_book disimpan hanya saat tombol "Buka Sekarang" diklik,
-  // bukan saat sheet dibuka. Supaya riwayat baca akurat.
+  // FIX: Hanya update #sheetPreview, bukan seluruh #sheetContent,
+  // supaya #btnReadNow dan onclick-nya tidak tertimpa.
+  const url = `books/${file}`;
+  document.getElementById("sheetPreview").innerHTML = `
+    <div style="height: 60vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
+      <iframe src="${url}" width="100%" height="100%" style="border:none; border-radius:15px;"></iframe>
+    </div>
+  `;
+
+  // Set onclick setelah innerHTML diupdate, supaya referensi elemen tetap valid.
   document.getElementById("btnReadNow").onclick = () => {
     closeSheet();
     const lastRead = { file, title, emoji, time: new Date().getTime() };
@@ -233,15 +241,6 @@ function openBookDetails(title, file, emoji, color) {
     renderLastRead();
     amanBukaBuku(file);
   };
-
-  const url = `books/${file}`;
-  const container = document.getElementById("sheetContent");
-  container.innerHTML = `
-    <div style="height: 70vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
-      <iframe src="${url}" width="100%" height="100%" style="border:none; border-radius:15px;"></iframe>
-    </div>
-    <button onclick="closeSheet()" class="btn-main" style="margin-top:20px; background:var(--text-soft);">Tutup</button>
-  `;
 
   openSheet();
 }
@@ -544,7 +543,6 @@ function startScan() {
     { facingMode: "environment" },
     { fps: 10, qrbox: { width: 250, height: 250 } },
     (decodedText) => {
-      // FIX #5: Tulis ke #inputClassCode supaya joinClass() bisa baca
       document.getElementById("inputClassCode").value = decodedText;
       stopScan();
       joinClass();
