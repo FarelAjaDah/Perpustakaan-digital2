@@ -1,6 +1,6 @@
 // ==============================================
 //  PUSTAKA FURINA v5 - script.js
-//  Last Updated: 8 Mei 2026
+//  Last Updated: 11 Mei 2026
 // ==============================================
 
 const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
@@ -29,7 +29,7 @@ const books = [
   { title: "Soal Geografi 11",     file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
   { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",      emoji: "🏆", color: "#f97316", category: "Ujian"    },
   { title: "Latihan Sosiologi 11", file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
-  {tittle: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
+  {title: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
 ];
 
 let currentCategory = "Semua";
@@ -138,7 +138,8 @@ function renderBooks(kw) {
     return matchCategory && matchKeyword;
   });
 
-  document.getElementById("bookCounter").innerText = `${filtered.length} materi ditemukan`;
+  document.getElementById("bookCounter").innerText = `${filtered.length} buku ditemukan`;
+  // fungsi buat itung buku berdasarkan filter
 
   list.innerHTML = filtered.map((b, index) => `
     <div class="book-card animate" style="animation-delay: ${index * 0.05}s"
