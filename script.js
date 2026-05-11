@@ -29,6 +29,7 @@ const books = [
   { title: "Soal Geografi 11",     file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
   { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",      emoji: "🏆", color: "#f97316", category: "Ujian"    },
   { title: "Latihan Sosiologi 11", file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
+  {tittle: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
 ];
 
 let currentCategory = "Semua";
