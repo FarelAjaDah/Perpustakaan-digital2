@@ -1,6 +1,8 @@
 // ==============================================
 //  PUSTAKA FURINA v5 - script.js
 //  Last Updated: 11 Mei 2026
+//  Bug Fixes: mulaiQuizFile, setCategory, swipe conflict,
+//             Enter key joinClass, double applySavedTheme
 // ==============================================
 
 const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
@@ -29,7 +31,7 @@ const books = [
   { title: "Soal Geografi 11",     file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
   { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",      emoji: "🏆", color: "#f97316", category: "Ujian"    },
   { title: "Latihan Sosiologi 11", file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
-  {title: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
+  { title: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
 ];
 
 let currentCategory = "Semua";
@@ -38,7 +40,9 @@ let lastStatus = "";
 
 
 
+// =============================================
 //  AUTH & INIT
+// =============================================
 function handleLogin() {
   const userVal = document.getElementById("usernameInput").value.trim();
   const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
@@ -86,7 +90,7 @@ function initApp() {
   document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
 
   renderBooks("");
-  renderLastRead(); 
+  renderLastRead();
   updateOnlineStatus();
 }
 
@@ -100,7 +104,9 @@ function logout() {
 }
 
 
-//  STATUS INDIHOME!!!!
+// =============================================
+//  STATUS KONEKSI
+// =============================================
 function updateOnlineStatus() {
   const statusDiv = document.getElementById("connectionStatus");
   const navKelas = document.getElementById("nav-kelas");
@@ -120,8 +126,9 @@ function updateOnlineStatus() {
 }
 
 
-
-//  BUKU & KOLEKSI BO....OOKS
+// =============================================
+//  BUKU & KOLEKSI
+// =============================================
 function renderBooks(kw) {
   const list = document.getElementById("bookList");
   const role = localStorage.getItem("user_role");
@@ -139,7 +146,18 @@ function renderBooks(kw) {
   });
 
   document.getElementById("bookCounter").innerText = `${filtered.length} buku ditemukan`;
-  // fungsi buat itung buku berdasarkan filter
+
+  // IMPROVEMENT: empty state kalau tidak ada hasil
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-soft);" class="animate">
+        <div style="font-size: 52px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
+        <p style="font-weight: 800; font-size: 15px; color: var(--text-main); margin-bottom: 6px;">Buku tidak ditemukan</p>
+        <p style="font-size: 13px;">Coba kata kunci lain atau ganti kategori</p>
+      </div>
+    `;
+    return;
+  }
 
   list.innerHTML = filtered.map((b, index) => `
     <div class="book-card animate" style="animation-delay: ${index * 0.05}s"
@@ -153,15 +171,18 @@ function renderBooks(kw) {
   `).join('');
 }
 
+// BUG FIX: setCategory — sebelumnya bisa matiin active-cat di tombol yang harusnya aktif
+// karena pakai .includes() yang bisa partial-match antar nama kategori.
+// Sekarang pakai data-category attribute untuk exact match.
 function setCategory(cat) {
   currentCategory = cat;
   document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.classList.toggle('active-cat', btn.innerText.includes(cat));
+    const btnCat = btn.getAttribute('data-category');
+    btn.classList.toggle('active-cat', btnCat === cat);
   });
   renderBooks(document.getElementById("searchInput").value);
 }
 
-// terakhir di gidaw
 function renderLastRead() {
   const lastReadData = localStorage.getItem("last_read_book");
   const container = document.getElementById("lastReadContainer");
@@ -174,7 +195,7 @@ function renderLastRead() {
       const book = JSON.parse(lastReadData);
       container.classList.remove("hidden");
       cardPlace.innerHTML = `
-        <div onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '')"
+        <div onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '${book.color || ''}')"
              style="background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); cursor: pointer;">
           <div style="font-size: 30px;">${book.emoji}</div>
           <div style="flex: 1;">
@@ -194,7 +215,9 @@ function renderLastRead() {
 }
 
 
+// =============================================
 //  NAVIGASI & SECTION
+// =============================================
 function showSection(type) {
   const isBooks = type === 'books';
 
@@ -208,7 +231,10 @@ function showSection(type) {
   if (type === 'kelas') setupKelasUI();
 }
 
+
+// =============================================
 //  BOTTOM SHEET
+// =============================================
 function openSheet() {
   document.getElementById("sheetOverlay").classList.add("active");
   document.getElementById("bottomSheet").classList.add("active");
@@ -226,8 +252,6 @@ function openBookDetails(title, file, emoji, color) {
   const bookData = books.find(b => b.file === file);
   document.getElementById("sheetCategory").innerText = bookData ? bookData.category : "Materi";
 
-  // FIX: Hanya update #sheetPreview, bukan seluruh #sheetContent,
-  // supaya #btnReadNow dan onclick-nya tidak tertimpa.
   const url = `books/${file}`;
   document.getElementById("sheetPreview").innerHTML = `
     <div style="height: 60vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
@@ -235,10 +259,9 @@ function openBookDetails(title, file, emoji, color) {
     </div>
   `;
 
-  // Set onclick setelah innerHTML diupdate, supaya referensi elemen tetap valid.
   document.getElementById("btnReadNow").onclick = () => {
     closeSheet();
-    const lastRead = { file, title, emoji, time: new Date().getTime() };
+    const lastRead = { file, title, emoji, color: color || (bookData ? bookData.color : ''), time: new Date().getTime() };
     localStorage.setItem("last_read_book", JSON.stringify(lastRead));
     renderLastRead();
     amanBukaBuku(file);
@@ -260,7 +283,10 @@ async function amanBukaBuku(fileName) {
   }
 }
 
-//  RUANG KELAS - SETUP GAMING
+
+// =============================================
+//  RUANG KELAS - SETUP
+// =============================================
 function setupKelasUI() {
   const role = localStorage.getItem("user_role");
   const isGuru = role === "Guru" || role === "Developer";
@@ -292,8 +318,10 @@ function refreshKodeKelas() {
 }
 
 
-//  RUANG KELAS - AKU SUDAH DEWASA (GURU)
-function updateClassStatus(status, content = "") {
+// =============================================
+//  RUANG KELAS - GURU
+// =============================================
+function updateClassStatus(status, content = "", onDone = null) {
   const codeElement = document.getElementById("activeCode");
   let currentCode = codeElement.innerText.trim();
 
@@ -314,7 +342,8 @@ function updateClassStatus(status, content = "") {
       showToast("Sesi berhasil diakhiri! 👋");
       if (window.pantuanInterval) clearInterval(window.pantuanInterval);
       document.getElementById("listJawabanMurid").innerHTML = `<p style="font-size:12px; color:var(--text-soft);">Sesi berakhir.</p>`;
-    }).catch(() => showToast("❌ Gagal menghubungi server."));
+      if (onDone) onDone();
+    }).catch(() => { showToast("❌ Gagal menghubungi server."); if (onDone) onDone(); });
     return;
   }
 
@@ -329,24 +358,50 @@ function updateClassStatus(status, content = "") {
     })
   }).then(res => {
     if (res.ok) showToast(`Mode ${status} aktif! 🚀`);
-  }).catch(() => showToast("❌ Gagal menyambung ke server."));
+    if (onDone) onDone();
+  }).catch(() => { showToast("❌ Gagal menyambung ke server."); if (onDone) onDone(); });
+}
+
+function setButtonLoading(btn, loadingText) {
+  if (!btn) return null;
+  const orig = btn.innerHTML;
+  btn.innerHTML = `<span class="btn-spinner"></span> ${loadingText}`;
+  btn.disabled = true;
+  return orig;
+}
+
+function resetButton(btn, originalText) {
+  if (!btn) return;
+  btn.innerHTML = originalText;
+  btn.disabled = false;
 }
 
 function mulaiPresentasiPDF() {
   const file = document.getElementById("selectFileBuku").value;
-  updateClassStatus("Presentasi", file);
+  const btn = document.querySelector("#guruView button[onclick='mulaiPresentasiPDF()']");
+  const orig = setButtonLoading(btn, "Membagikan...");
+  updateClassStatus("Presentasi", file, () => resetButton(btn, orig));
 }
 
 function mulaiQuiz() {
   const soal = document.getElementById("quizText").value.trim();
   if (!soal) return showToast("Ketik soalnya dulu!");
-  updateClassStatus("Kuis", soal);
+  const btn = document.querySelector("#guruView button[onclick='mulaiQuiz()']");
+  const orig = setButtonLoading(btn, "Mengirim...");
+  updateClassStatus("Kuis", soal, () => resetButton(btn, orig));
 }
 
+// BUG FIX: sebelumnya mengirim object JS langsung sebagai `content`,
+// yang menyebabkan Firebase menerima data tidak konsisten dan murid
+// tidak bisa parse data.content.tipe dengan benar.
+// Sekarang dikirim sebagai JSON string dan di-parse di sisi murid.
 function mulaiQuizFile() {
   const file = document.getElementById("selectQuizFile").value;
   if (!file) return showToast("Pilih file kuis dulu!");
-  updateClassStatus("Kuis", { tipe: "pdf", namaFile: file });
+  const contentPayload = JSON.stringify({ tipe: "pdf", namaFile: file });
+  const btn = document.querySelector("#guruView button[onclick='mulaiQuizFile()']");
+  const orig = setButtonLoading(btn, "Mengirim...");
+  updateClassStatus("Kuis", contentPayload, () => resetButton(btn, orig));
 }
 
 function pantauJawaban() {
@@ -374,14 +429,23 @@ function pantauJawaban() {
     .catch(() => { /* silent fail saat offline */ });
 }
 
-//  RUANG KELAS - ANAK KECIL NONTON PENDIDIKAN (MURID)
+
+// =============================================
+//  RUANG KELAS - MURID
+// =============================================
 function joinClass() {
   const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
   if (!input) return showToast("Masukkan kode kelas dulu!");
 
+  // IMPROVEMENT: loading state supaya user tau sedang proses
+  const btn = document.querySelector("#joinArea .btn-main");
+  const originalText = btn ? btn.innerHTML : null;
+  if (btn) { btn.innerHTML = `<span class="btn-spinner"></span> Menyambungkan...`; btn.disabled = true; }
+
   fetch(FIREBASE_URL)
     .then(res => res.json())
     .then(data => {
+      if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
       if (data && input === data.code) {
         document.getElementById("joinArea").classList.add("hidden");
         document.getElementById("liveClassArea").classList.remove("hidden");
@@ -391,30 +455,11 @@ function joinClass() {
         showToast("Kode salah atau kelas belum dibuka!");
       }
     })
-    .catch(() => showToast("❌ Tidak bisa terhubung. Periksa koneksi."));
+    .catch(() => {
+      if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+      showToast("❌ Tidak bisa terhubung. Periksa koneksi.");
+    });
 }
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    if (syncInterval) clearInterval(syncInterval);
-    if (window.pantuanInterval) clearInterval(window.pantuanInterval);
-  } else {
-    const role = localStorage.getItem("user_role");
-    if (!role) return;
-    // Resume polling murid jika sedang di kelas
-    const liveArea = document.getElementById("liveClassArea");
-    if (liveArea && !liveArea.classList.contains("hidden")) {
-      if (!syncInterval) syncInterval = setInterval(syncWithGuru, 3000);
-    }
-    // Resume polling guru jika panel guru aktif
-    if ((role === "Guru" || role === "Developer")) {
-      const guruView = document.getElementById("guruView");
-      if (guruView && !guruView.classList.contains("hidden")) {
-        if (!window.pantuanInterval) window.pantuanInterval = setInterval(pantauJawaban, 3000);
-      }
-    }
-  }
-});
 
 function syncWithGuru() {
   fetch(FIREBASE_URL)
@@ -439,13 +484,24 @@ function syncWithGuru() {
       } else if (data.status === "Kuis") {
         statusText.innerText = "📝 KUIS SEDANG BERLANGSUNG";
 
-        const isPdf = data.content && typeof data.content === 'object' && data.content.tipe === "pdf";
+        // BUG FIX: data.content sekarang bisa berupa JSON string (dari mulaiQuizFile)
+        // atau plain string (dari mulaiQuiz). Parse dulu, kalau gagal berarti plain string.
+        let parsedContent = data.content;
+        if (typeof data.content === 'string') {
+          try {
+            parsedContent = JSON.parse(data.content);
+          } catch (e) {
+            parsedContent = data.content; // tetap plain string
+          }
+        }
+
+        const isPdf = parsedContent && typeof parsedContent === 'object' && parsedContent.tipe === "pdf";
 
         if (isPdf) {
           container.innerHTML = `
             <div style="padding:16px;" class="animate">
               <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">📄 Kuis dari File PDF:</p>
-              <iframe src="books/${data.content.namaFile}" width="100%" height="300px" style="border:none; border-radius:12px;"></iframe>
+              <iframe src="books/${parsedContent.namaFile}" width="100%" height="300px" style="border:none; border-radius:12px;"></iframe>
               <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu di sini..." style="width:100%; height:80px; margin-top:12px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
               <button class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
             </div>`;
@@ -469,6 +525,15 @@ function kirimJawabanKeGuru(code, nama) {
   const isiJawaban = document.getElementById("jawabanMuridText")?.value?.trim();
   if (!isiJawaban) return showToast("Jawaban tidak boleh kosong!");
 
+  const preview = isiJawaban.length > 80 ? isiJawaban.substring(0, 80) + "..." : isiJawaban;
+if (!confirm(`Kirim jawaban ini?\n\n"${preview}"`)) return;
+  const kirimBtn = document.querySelector("#classContent .btn-main");
+  const originalText = kirimBtn ? kirimBtn.innerHTML : null;
+  if (kirimBtn) {
+    kirimBtn.innerHTML = '<span class="btn-spinner"></span> Mengirim...';
+    kirimBtn.disabled = true;
+  }
+
   const URL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}/${nama}.json`;
 
   fetch(URL_JAWABAN, {
@@ -480,10 +545,19 @@ function kirimJawabanKeGuru(code, nama) {
       showToast("Jawaban terkirim! ✅");
       const input = document.getElementById("jawabanMuridText");
       if (input) input.disabled = true;
+      if (kirimBtn) {
+        kirimBtn.innerHTML = "✅ Terkirim";
+        kirimBtn.disabled = true;
+        kirimBtn.style.background = "#10b981";
+      }
     } else {
       showToast("❌ Gagal kirim. Coba lagi.");
+      if (kirimBtn) { kirimBtn.innerHTML = originalText; kirimBtn.disabled = false; }
     }
-  }).catch(() => showToast("❌ Tidak ada koneksi."));
+  }).catch(() => {
+    showToast("❌ Tidak ada koneksi.");
+    if (kirimBtn) { kirimBtn.innerHTML = originalText; kirimBtn.disabled = false; }
+  });
 }
 
 function handleSesiBerakhir() {
@@ -515,7 +589,10 @@ function resetTampilanMurid() {
   showToast("Silakan masuk ke kelas baru.");
 }
 
-//  QRISS
+
+// =============================================
+//  QR CODE
+// =============================================
 function generateQR(code) {
   const el = document.getElementById("qrcode");
   el.innerHTML = "";
@@ -525,7 +602,7 @@ function generateQR(code) {
 let html5QrScanner = null;
 
 function startScan() {
-  if (html5QrScanner) return; // Cegah double-init jika tombol diklik dua kali
+  if (html5QrScanner) return;
 
   const reader = document.getElementById("reader");
   reader.classList.remove("hidden");
@@ -568,7 +645,9 @@ function stopScan() {
   }
 }
 
+// =============================================
 //  TEMA
+// =============================================
 function toggleTheme() {
   const current = document.body.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
@@ -581,7 +660,10 @@ function applySavedTheme() {
   if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
 }
 
-//  TOAST NOTIFICATION
+
+// =============================================
+//  TOAST
+// =============================================
 function showToast(msg) {
   const toast = document.getElementById("toast");
   toast.innerText = msg;
@@ -590,7 +672,10 @@ function showToast(msg) {
   toast._timer = setTimeout(() => { toast.style.display = "none"; }, 2500);
 }
 
+
+// =============================================
 //  DEVELOPER MODE
+// =============================================
 function toggleDevMenu() {
   document.getElementById("devMenu").classList.toggle("hidden");
 }
@@ -604,10 +689,6 @@ function quickSwitch(newRole) {
   showToast(`Switched ke role: ${newRole} 🛠️`);
 }
 
-function initDeveloperMode() {
-  console.log("[DEV MODE] Developer mode aktif.");
-}
-
 function toggleFullScreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
@@ -616,38 +697,55 @@ function toggleFullScreen() {
   }
 }
 
+
+// =============================================
 //  EVENT LISTENERS & INIT
+// =============================================
 document.addEventListener("DOMContentLoaded", () => {
   applySavedTheme();
-
   const mc = new Hammer(document.body);
   mc.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
-  mc.on("swipeleft", () => {
+  mc.on("swipeleft", (e) => {
+    if (e.target.closest('.category-container')) return; // guard scroll horizontal
     if (localStorage.getItem("user_role") && navigator.onLine) {
       showSection('kelas');
     }
   });
 
-  mc.on("swiperight", () => {
+  mc.on("swiperight", (e) => {
+    if (e.target.closest('.category-container')) return; // guard scroll horizontal
     if (localStorage.getItem("user_role")) {
       showSection('books');
     }
   });
 
+  // Enter key di login
   document.getElementById("usernameInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
   document.getElementById("passcodeInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
+
+  document.getElementById("inputClassCode").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") joinClass();
+  });
+
+  const bottomSheet = document.getElementById("bottomSheet");
+  if (bottomSheet) {
+    const sheetHammer = new Hammer(bottomSheet);
+    sheetHammer.get('swipe').set({ direction: Hammer.DIRECTION_DOWN });
+    sheetHammer.on("swipedown", () => {
+      if (bottomSheet.classList.contains("active")) closeSheet();
+    });
+  }
 });
 
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 
 window.onload = () => {
-  applySavedTheme();
   initApp();
 };
 
