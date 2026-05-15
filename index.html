@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pustaka Digital v4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Pustaka Digital v5</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
@@ -62,21 +62,19 @@
         </div>
         <h2 id="welcomeText" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px;">Halo! 👋</h2>
 
-   
         <div id="searchArea">
           <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)">
           <p id="bookCounter" style="color: var(--text-soft); font-size: 13px; font-weight: 600; margin: 15px 0 10px 0;">Memuat koleksi...</p>
-          
           <div class="category-container">
-            <div class="cat-btn active-cat" onclick="setCategory('Semua')">Semua</div>
-            <div class="cat-btn" onclick="setCategory('Pelajaran')">📚 Pelajaran</div>
-            <div class="cat-btn" onclick="setCategory('Komik')">🎨 Komik</div>
-            <div class="cat-btn" onclick="setCategory('Novel')">📖 Novel</div>
-            <div class="cat-btn" onclick="setCategory('Ujian')">📝 Ujian</div>
-            <div class="cat-btn" onclick="setCategory('Latihan')">✏️ Latihan</div>
-            <div class="cat-btn" onclick="setCategory('Lainnya')">📔 Jurnal</div>
-          </div><!-- /category-container -->
-        </div><!-- /searchArea -->
+            <div class="cat-btn active-cat" data-category="Semua"    onclick="setCategory('Semua')">Semua</div>
+            <div class="cat-btn"            data-category="Pelajaran" onclick="setCategory('Pelajaran')">📚 Pelajaran</div>
+            <div class="cat-btn"            data-category="Komik"     onclick="setCategory('Komik')">🎨 Komik</div>
+            <div class="cat-btn"            data-category="Novel"     onclick="setCategory('Novel')">📖 Novel</div>
+            <div class="cat-btn"            data-category="Ujian"     onclick="setCategory('Ujian')">📝 Ujian</div>
+            <div class="cat-btn"            data-category="Latihan"   onclick="setCategory('Latihan')">✏️ Latihan</div>
+            <div class="cat-btn"            data-category="Lainnya"   onclick="setCategory('Lainnya')">📔 Jurnal</div>
+          </div>
+        </div>
 
       </div>
     </header>
@@ -142,6 +140,7 @@
               <h3>Gabung Kelas</h3>
               <p style="margin-bottom: 20px; font-size: 14px; color: var(--text-soft);">Masukkan kode dari gurumu</p>
               <div style="position: relative;">
+                <!-- FIX: Enter key sekarang bisa trigger joinClass() lewat event listener di script.js -->
                 <input type="text" id="inputClassCode" placeholder="KODE" style="text-align: center; margin-bottom: 20px; font-weight: 800; letter-spacing: 4px; width: 100%;">
                 <button onclick="startScan()" style="position: absolute; right: 10px; top: 35%; transform: translateY(-50%); background: none; border: none; font-size: 20px;">📷</button>
               </div>
@@ -175,7 +174,7 @@
 
   <div id="sheetOverlay" class="bottom-sheet-overlay" onclick="closeSheet()"></div>
   <div id="bottomSheet" class="bottom-sheet">
-    <div class="sheet-handle"></div>
+    <div class="sheet-handle" onclick="closeSheet()"></div>
     <div id="sheetContent" style="text-align: center;">
       <div id="sheetEmoji" style="font-size: 64px; margin-bottom: 16px;"></div>
       <h2 id="sheetTitle" style="font-size: 24px; font-weight: 800; margin-bottom: 8px;"></h2>
@@ -193,7 +192,7 @@
     }
   </style>
 
-  <div id="devFab" class="hidden" style="position: fixed; bottom: 100px; right: 20px; z-index: 9999;">
+  <div id="devFab" class="hidden" style="position: fixed; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); right: 20px; z-index: 9999;">
     <button onclick="toggleDevMenu()" style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; border: none; box-shadow: var(--shadow-lg); font-size: 24px;">🛠️</button>
     <div id="devMenu" class="hidden" style="position: absolute; bottom: 70px; right: 0; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 15px; padding: 10px; width: 150px; box-shadow: var(--shadow-lg);">
       <p style="font-size: 10px; font-weight: 800; color: var(--text-soft); margin-bottom: 8px; text-align: center;">SWITCH ROLE</p>
