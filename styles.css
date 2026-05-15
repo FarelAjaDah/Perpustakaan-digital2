@@ -1,9 +1,9 @@
 /* ==============================================
    PUSTAKA FURINA v5 — styles.css
-   Last Updated: 6 Mei 2026 
+   Last Updated: 15 Mei 2026
    ============================================== */
-   /* BUKAN GW YANG BUAT, JANGAN DIKOMENIN KALAU JELEK 😢😰 */
-   
+   /* yahayuk */
+
 /* --- DESIGN TOKENS --- */
 :root {
   --bg-body: #f0f4ff;
@@ -24,6 +24,9 @@
   --radius-xl: 28px;
   --radius-2xl: 32px;
   --transition: all 0.25s ease;
+  /* FIX: safe area variables untuk iPhone notch & home bar */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 [data-theme="dark"] {
@@ -58,6 +61,8 @@ body {
   overflow-x: hidden;
   line-height: 1.5;
   transition: background 0.3s ease, color 0.3s ease;
+  /* FIX: safe area untuk viewport penuh di iPhone */
+  padding-top: var(--safe-top);
 }
 
 /* --- TYPOGRAPHY HELPERS --- */
@@ -74,6 +79,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  padding-bottom: calc(24px + var(--safe-bottom));
   background:
     radial-gradient(ellipse at 10% 10%, rgba(79, 70, 229, 0.12) 0px, transparent 55%),
     radial-gradient(ellipse at 90% 90%, rgba(139, 92, 246, 0.10) 0px, transparent 55%),
@@ -93,7 +99,6 @@ body {
   overflow: hidden;
 }
 
-/* Dekorasi sudut kartu login */
 .login-card::before {
   content: '';
   position: absolute;
@@ -284,6 +289,8 @@ body {
   padding: 12px 0 14px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* FIX: touch-action supaya scroll horizontal tidak bentrok dengan swipe gesture */
+  touch-action: pan-x;
 }
 
 .category-container::-webkit-scrollbar { display: none; }
@@ -301,6 +308,9 @@ body {
   cursor: pointer;
   transition: var(--transition);
   flex-shrink: 0;
+  /* FIX: user-select none supaya tidak ada teks ter-highlight saat swipe */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .cat-btn:hover {
@@ -322,7 +332,8 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
   gap: 16px;
-  padding-bottom: 120px;
+  /* FIX: padding-bottom memperhitungkan safe area + tinggi nav */
+  padding-bottom: calc(120px + var(--safe-bottom));
 }
 
 .book-card {
@@ -362,11 +373,13 @@ body {
 
 /* ==============================================
    BOTTOM NAV
+   FIX: tambah padding-bottom untuk safe area (iPhone home bar)
    ============================================== */
 
 .nav-bar {
   position: fixed;
-  bottom: 20px;
+  /* FIX: bottom memperhitungkan safe area inset */
+  bottom: calc(20px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 40px);
@@ -418,6 +431,8 @@ body {
   text-align: center;
   max-width: 520px;
   margin: 16px auto;
+  /* FIX: margin-bottom memperhitungkan nav + safe area */
+  margin-bottom: calc(100px + var(--safe-bottom));
   box-shadow: var(--shadow-md);
 }
 
@@ -457,6 +472,8 @@ body {
 
 /* ==============================================
    BOTTOM SHEET
+   FIX: padding-bottom safe area supaya konten tidak
+        terpotong di iPhone dengan home bar
    ============================================== */
 
 .bottom-sheet-overlay {
@@ -483,10 +500,16 @@ body {
   background: var(--card-bg);
   border-top-left-radius: var(--radius-2xl);
   border-top-right-radius: var(--radius-2xl);
-  padding: 28px 24px 36px;
+  padding: 28px 24px;
+  /* FIX: padding-bottom memperhitungkan safe area */
+  padding-bottom: calc(36px + var(--safe-bottom));
   z-index: 2001;
   transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.12);
+  /* FIX: max-height supaya tidak overflow layar kecil */
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .bottom-sheet.active { bottom: 0; }
@@ -497,15 +520,18 @@ body {
   background: var(--glass-border);
   border-radius: 10px;
   margin: -12px auto 20px;
+  /* FIX: lebih mudah di-tap untuk dismiss */
+  cursor: pointer;
 }
 
 /* ==============================================
    TOAST
+   FIX: bottom memperhitungkan nav + safe area
    ============================================== */
 
 .toast {
   position: fixed;
-  bottom: 96px;
+  bottom: calc(96px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   background: var(--primary);
@@ -571,13 +597,11 @@ body {
   display: none !important;
 }
 
-/* Transisi section */
 #bookSection,
 #kelasSection {
   transition: opacity 0.2s ease;
 }
 
-/* Control Grid (Panel Guru) */
 .control-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -620,7 +644,7 @@ body {
   .books-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    padding-bottom: 100px;
+    padding-bottom: calc(100px + var(--safe-bottom));
   }
 
   .book-card { padding: 16px 12px; }
@@ -630,7 +654,7 @@ body {
 
   .nav-bar {
     width: calc(100% - 32px);
-    bottom: 14px;
+    bottom: calc(14px + var(--safe-bottom));
   }
 
   .nav-item { padding: 10px 6px; font-size: 12px; }
@@ -640,7 +664,7 @@ body {
   .iframe { height: 380px; }
 
   .sync-card { padding: 20px 16px; }
-  
+
   #activeCode { font-size: 18px; letter-spacing: 4px; }
 }
 
