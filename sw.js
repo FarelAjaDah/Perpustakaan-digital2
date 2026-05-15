@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pustaka-furina-v4'; // jangan lupa ganti versi mas
+const CACHE_NAME = 'pustaka-furina-v5'; // jangan lupa diganti mas
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  self.skipWaiting(); // Paksa SW baru aktif segera
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -24,49 +24,42 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            return caches.delete(cache); // Hapus cache versi lama
+            return caches.delete(cache);
           }
         })
       );
-    }).then(() => self.clients.claim()) // Tambahkan baris ini
+    }).then(() => self.clients.claim())
   );
 });
 
 // Cache First, then Network
 self.addEventListener('fetch', (event) => {
-  // Jangan cegat request ke Firebase (Online Features) agar tidak bug
+  // Jangan cegat request ke Firebase agar tidak bug
   if (event.request.url.includes('firebasedatabase') || event.request.url.includes('google')) {
-    return; 
+    return;
   }
 
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Jika ada di cache, kasih langsung
       if (response) {
         return response;
       }
 
-      // Jika tidak ada, ambil dari internet
       return fetch(event.request).then((networkResponse) => {
-        // Hanya simpan file yang sukses (status 200)
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          // Jika itu file PDF, cobain simpen
           if (event.request.url.includes('.pdf')) {
-             return saveToCache(event.request, networkResponse);
+            return saveToCache(event.request, networkResponse);
           }
           return networkResponse;
         }
-
         return saveToCache(event.request, networkResponse);
       }).catch(() => {
-        // Jika internet mati dan file tidak ada di cache
         console.log("Offline: File tidak ditemukan");
       });
     })
   );
 });
 
-// Fungsi pembantu untuk menyimpan ke cache otomatis
 function saveToCache(request, response) {
   const responseToCache = response.clone();
   caches.open(CACHE_NAME).then((cache) => {
@@ -75,5 +68,4 @@ function saveToCache(request, response) {
   return response;
 }
 
-[// 6 mei 2026 = terakhir edit } 
-  ]
+// Last updated: 11 Mei 2026
