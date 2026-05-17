@@ -89,6 +89,23 @@ function initApp() {
   document.getElementById("roleBadge").innerText = role.toUpperCase();
   document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
 
+  function updateVisualRole() {
+    const role = localStorage.getItem("user_role"); // Ambil role dari storage
+    const badge = document.getElementById("roleBadge");
+    
+    if (role) {
+        // Pasang atribut ke body agar CSS bisa mendeteksi
+        document.body.setAttribute("data-user-role", role);
+        
+        // Update teks badge
+        if (role === "Guru") {
+            badge.innerText = "⭐ Akun Guru";
+        } else {
+            badge.innerText = "📖 Akun Murid";
+        }
+    }
+}
+
   renderBooks("");
   renderLastRead();
   updateOnlineStatus();
@@ -146,8 +163,6 @@ function renderBooks(kw) {
   });
 
   document.getElementById("bookCounter").innerText = `${filtered.length} buku ditemukan`;
-
-  // IMPROVEMENT: empty state kalau tidak ada hasil
   if (filtered.length === 0) {
     list.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-soft);" class="animate">
