@@ -2,7 +2,7 @@
    PUSTAKA FURINA v5 — styles.css
    Last Updated: 15 Mei 2026
    ============================================== */
-   /* yahayuk */
+   /* DESAIN INSPIRASI: https://dribbble.com/shots/21338028-Book-App-Concept */
 
 /* --- DESIGN TOKENS --- */
 :root {
@@ -246,15 +246,35 @@ body {
 }
 
 /* --- ROLE BADGE --- */
-#roleBadge {
+.role-badge {
   font-size: 10px;
   font-weight: 800;
-  color: var(--accent);
-  background: var(--accent-soft);
-  padding: 4px 12px;
-  border-radius: 50px;
   text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 50px;
   letter-spacing: 1px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+/* Warna khusus untuk Guru */
+[data-user-role="Guru"] .role-badge {
+  background: #4f46e5; /* Indigo */
+  color: white;
+}
+
+/* Warna khusus untuk Murid */
+[data-user-role="Murid"] .role-badge {
+  background: #10b981; /* Emerald Green */
+  color: white;
+}
+
+[data-user-role="Guru"] .main-header {
+  border-bottom: 3px solid #4f46e5;
+}
+
+[data-user-role="Murid"] .main-header {
+  border-bottom: 3px solid #10b981;
 }
 
 /* --- SEARCH INPUT --- */
