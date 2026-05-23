@@ -1,819 +1,233 @@
-// ==============================================
-//  PUSTAKA FURINA v5 - script.js
-//  Last Updated: 24 Mei 2026
-// ==============================================
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Pustaka Digital V5</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="script.js" defer></script>
+  <script src="js/pdf.min.js"></script>
+</head>
 
-// =============================================
-//  KONSTANTA FIREBASE
-// =============================================
-const FIREBASE_BASE = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app";
-const FIREBASE_URL  = `${FIREBASE_BASE}/class_sync.json`;
+<body data-theme="light">
 
-const ACCESS_KEYS = {
-  "AKUGURU": "Guru",
-  "MURID":   "Murid"
-};
-
-const books = [
-  { title: "Matematika",           file: "matematika.pdf",    emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
-  { title: "Sejarah",              file: "sejarah.pdf",       emoji: "📜", color: "#f59e0b", category: "Pelajaran" },
-  { title: "Biologi",              file: "biologi.pdf",       emoji: "🧬", color: "#10b981", category: "Pelajaran" },
-  { title: "Bahasa Jepang",        file: "jp.pdf",            emoji: "🗾", color: "#ef4444", category: "Pelajaran" },
-  { title: "Fisika",               file: "fisika.pdf",        emoji: "🔬", color: "#6366f1", category: "Pelajaran" },
-  { title: "Kimia",                file: "kimia.pdf",         emoji: "⚗️", color: "#f97316", category: "Pelajaran" },
-  { title: "One Piece",            file: "op.pdf",            emoji: "🏴‍☠️", color: "#ef4444", category: "Komik"    },
-  { title: "Solo Leveling",        file: "sl.pdf",            emoji: "⚔️", color: "#6366f1", category: "Komik"    },
-  { title: "Detective Conan",      file: "conan.pdf",         emoji: "🕵️", color: "#10b981", category: "Komik"    },
-  { title: "Laskar Pelangi",       file: "lp.pdf",            emoji: "🌈", color: "#10b981", category: "Novel"    },
-  { title: "Harry Potter",         file: "hp.pdf",            emoji: "⚡", color: "#475569", category: "Novel"    },
-  { title: "Laut Bercerita",       file: "laut.pdf",          emoji: "🌊", color: "#3b82f6", category: "Novel"    },
-  { title: "Dilan 1990",           file: "dilan.pdf",         emoji: "🏍️", color: "#f59e0b", category: "Novel"    },
-  { title: "Kubo Won't Let Me...", file: "kubo.pdf",          emoji: "👻", color: "#ef4444", category: "Novel"    },
-  { title: "Stop Overthinking",    file: "stop.pdf",          emoji: "🧠", color: "#6366f1", category: "Novel"    },
-  { title: "Soal Geografi 11",     file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
-  { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",      emoji: "🏆", color: "#f97316", category: "Ujian"    },
-  { title: "Latihan Sosiologi 11", file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
-  { title: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
-];
-
-let currentCategory = "Semua";
-let syncInterval    = null;
-let lastStatus      = "";
-let lastSyncStatus  = ""; 
-
-
-// =============================================
-//  BABU PEMBANTU PEMBANTAI ANJAY
-// =============================================
-function esc(str) {
-  return String(str ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-
-// =============================================
-//  AUTH & INIT
-// =============================================
-function handleLogin() {
-  const userVal = document.getElementById("usernameInput").value.trim();
-  const passVal = document.getElementById("passcodeInput").value.trim().toUpperCase();
-
-  if (!userVal) {
-    showToast("Masukkan nama pengguna dulu!");
-    return;
-  }
-
-  if (passVal === "DEVELOPER") {
-    localStorage.setItem("user_role", "Developer");
-    localStorage.setItem("user_name", userVal || "Admin Dev");
-    initApp();
-    showToast("Mode Developer Aktif! 🛠️");
-  } else if (ACCESS_KEYS[passVal]) {
-    localStorage.setItem("user_role", ACCESS_KEYS[passVal]);
-    localStorage.setItem("user_name", userVal);
-    initApp();
-    showToast(`Selamat datang, ${userVal}! 👋`);
-  } else {
-    showToast("Kode akses salah! Coba lagi.");
-  }
-}
-
-function updateVisualRole() {
-  const role  = localStorage.getItem("user_role");
-  const badge = document.getElementById("roleBadge");
-  if (!role || !badge) return;
-
-  document.body.setAttribute("data-user-role", role);
-
-  if (role === "Guru") {
-    badge.innerText = "🧐Akun Sensei";
-  } else if (role === "Developer") {
-    badge.innerText = "🛠️ Developer";
-  } else {
-    badge.innerText = "📖 Akun Murid";
-  }
-}
-
-function initApp() {
-  const role = localStorage.getItem("user_role");
-
-  if (!role) {
-    document.getElementById("mainPage").classList.add("hidden");
-    document.getElementById("loginPage").classList.remove("hidden");
-    return;
-  }
-
-  const devFab = document.getElementById("devFab");
-  if (role === "Developer" || role === "Guru") {
-    devFab.classList.remove("hidden");
-  } else {
-    devFab.classList.add("hidden");
-  }
-
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("mainPage").classList.remove("hidden");
-
-  updateVisualRole();
-  document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
-
-  renderBooks("");
-  renderLastRead();
-  updateOnlineStatus();
-}
-
-function logout() {
-  if (confirm("Yakin mau keluar?")) {
-    if (syncInterval) clearInterval(syncInterval);
-    if (window.pantuanInterval) clearInterval(window.pantuanInterval);
-    localStorage.clear();
-    location.reload();
-  }
-}
-
-
-// =============================================
-//  STATUS KONEKSI
-// =============================================
-function updateOnlineStatus() {
-  const statusDiv = document.getElementById("connectionStatus");
-  const navKelas  = document.getElementById("nav-kelas");
-
-  if (!statusDiv || !navKelas) return;
-
-  const isOnline = navigator.onLine;
-  statusDiv.innerText = isOnline ? "🌐 ONLINE — FITUR KELAS AKTIF" : "📡 OFFLINE — MODE BACA";
-  statusDiv.style.color = isOnline ? "#10b981" : "#ef4444";
-
-  if (!isOnline) {
-    showSection('books');
-    navKelas.style.display = "none";
-  } else {
-    navKelas.style.display = "";
-  }
-}
-
-
-// =============================================
-//  BUKU & KOLEKSI
-// =============================================
-function renderBooks(kw) {
-  const list    = document.getElementById("bookList");
-  const role    = localStorage.getItem("user_role");
-  const keyword = (kw || "").toLowerCase();
-
-  const filtered = books.filter(b => {
-    const matchKeyword  = b.title.toLowerCase().includes(keyword);
-    const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
-
-    if ((b.category === "Latihan" || b.category === "Ujian") && role === "Murid") {
-      return false;
-    }
-
-    return matchCategory && matchKeyword;
-  });
-
-  document.getElementById("bookCounter").innerText = `${filtered.length} buku ditemukan`;
-
-  if (filtered.length === 0) {
-    list.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-soft);" class="animate">
-        <div style="font-size: 52px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
-        <p style="font-weight: 800; font-size: 15px; color: var(--text-main); margin-bottom: 6px;">Buku tidak ditemukan</p>
-        <p style="font-size: 13px;">Coba kata kunci lain atau ganti kategori</p>
+  <!-- ============ P LOGIN ============ -->
+  <div id="loginPage">
+    <div class="login-card animate">
+      <div style="position: absolute; top: 20px; right: 20px; z-index: 20;">
+        <button onclick="toggleTheme()" style="background:none; border:none; font-size: 22px; cursor:pointer;">🌓</button>
       </div>
-    `;
-    return;
-  }
 
-  list.innerHTML = filtered.map((b, index) => `
-    <div class="book-card animate" style="animation-delay: ${index * 0.05}s"
-         onclick="openBookDetails('${b.title.replace(/'/g, "\\'")}', '${b.file}', '${b.emoji}', '${b.color}')">
-      <div class="book-cover" style="background: ${b.color}20; color: ${b.color};">${b.emoji}</div>
-      <div style="font-weight: 800; font-size: 14px; color: var(--text-main); line-height: 1.3;">${b.title}</div>
-      <div style="font-size: 10px; color: var(--accent); font-weight: 700; margin-top: 6px; opacity: 0.8;">
-        ${b.category.toUpperCase()}
+      <div class="login-header">
+        <h1>📖</h1>
+        <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -1px;">Pustaka Digital</h2>
+        <p style="color: var(--text-soft); font-size: 15px; margin-bottom: 32px;">Akses Buku secara simpel dan SUSAH WAHAHAHA</p>
       </div>
+
+      <div class="input-group">
+        <label>Nama Pengguna</label>
+        <input type="text" id="usernameInput" placeholder="Masukkan nama pengguna" autocomplete="off">
+      </div>
+
+      <div class="input-group">
+        <label>Kode Akses</label>
+        <input type="password" id="passcodeInput" placeholder="Masukkan kode akses..." maxlength="10">
+      </div>
+
+      <button class="btn-main btn-login" onclick="handleLogin()">
+        Masuk ke Pustaka
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+
+      <p style="font-size: 11px; margin-top: 24px; color: var(--text-soft); font-weight: 600;">
+        V5.0 • Secure Connection Active
+      </p>
     </div>
-  `).join('');
-}
+  </div>
 
-function setCategory(cat) {
-  currentCategory = cat;
-  document.querySelectorAll('.cat-btn').forEach(btn => {
-    const btnCat = btn.getAttribute('data-category');
-    btn.classList.toggle('active-cat', btnCat === cat);
-  });
-  renderBooks(document.getElementById("searchInput").value);
-}
+  <!-- ============ HALAMAN MAIN ============ -->
+  <div id="mainPage" class="hidden">
+    <header class="header">
+      <div class="container">
+        <span id="roleBadge" class="role-badge">Memuat...</span>
 
-function renderLastRead() {
-  const lastReadData = localStorage.getItem("last_read_book");
-  const container    = document.getElementById("lastReadContainer");
-  const cardPlace    = document.getElementById("lastReadCard");
-
-  if (!container || !cardPlace) return;
-
-  if (lastReadData) {
-    try {
-      const book = JSON.parse(lastReadData);
-      container.classList.remove("hidden");
-      cardPlace.innerHTML = `
-        <div onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '${book.color || ''}')"
-             style="background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); cursor: pointer;">
-          <div style="font-size: 30px;">${book.emoji}</div>
-          <div style="flex: 1;">
-            <h4 style="margin: 0; font-size: 14px;">${book.title}</h4>
-            <p style="margin: 0; font-size: 11px; color: var(--text-soft);">Klik untuk lanjut membaca</p>
-          </div>
-          <div style="color: var(--accent); font-size: 20px;">➔</div>
+        <div id="connectionStatus" style="transition: all 0.3s ease; text-align: center; padding: 5px; font-size: 11px; font-weight: 800; border-radius: 50px; margin-bottom: 15px;">
+          Memeriksa koneksi...
         </div>
-      `;
-    } catch (e) {
-      localStorage.removeItem("last_read_book");
-      container.classList.add("hidden");
-    }
-  } else {
-    container.classList.add("hidden");
-  }
-}
 
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <button onclick="toggleTheme()" style="background:none; border:none; font-size: 20px; cursor:pointer; margin-left: auto;">🌓</button>
+        </div>
+        <h2 id="welcomeText" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px;">Halo!</h2>
 
-// =============================================
-//  NAVIGASI & SECTION
-// =============================================
-function showSection(type) {
-  const isBooks = type === 'books';
+        <div id="searchArea">
+          <input type="text" id="searchInput" placeholder="Cari judul materi..." onkeyup="renderBooks(this.value)">
+          <p id="bookCounter" style="color: var(--text-soft); font-size: 13px; font-weight: 600; margin: 15px 0 10px 0;">Memuat koleksi...</p>
+          <div class="category-container">
+            <div class="cat-btn active-cat" data-category="Semua"     onclick="setCategory('Semua')">Semua</div>
+            <div class="cat-btn"            data-category="Pelajaran" onclick="setCategory('Pelajaran')">📚 Pelajaran</div>
+            <div class="cat-btn"            data-category="Komik"     onclick="setCategory('Komik')">🎨 Komik</div>
+            <div class="cat-btn"            data-category="Novel"     onclick="setCategory('Novel')">📖 Novel</div>
+            <div class="cat-btn"            data-category="Ujian"     onclick="setCategory('Ujian')">📝 Ujian</div>
+            <div class="cat-btn"            data-category="Latihan"   onclick="setCategory('Latihan')">✏️ Latihan</div>
+            <div class="cat-btn"            data-category="Jurnal"    onclick="setCategory('Jurnal')">📔 Jurnal</div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-  document.getElementById("bookSection").classList.toggle("hidden", !isBooks);
-  document.getElementById("kelasSection").classList.toggle("hidden", isBooks);
-  document.getElementById("searchArea").classList.toggle("hidden", !isBooks);
+    <main class="container" style="padding-bottom: 100px;">
 
-  document.getElementById("nav-books").classList.toggle("active", isBooks);
-  document.getElementById("nav-kelas").classList.toggle("active", !isBooks);
+      <!-- KOLEKSI BUKU -->
+      <div id="bookSection">
+        <div id="lastReadContainer" class="hidden" style="margin-bottom: 25px;">
+          <p style="font-size: 11px; font-weight: 800; color: var(--accent); margin-bottom: 10px; letter-spacing: 1px;">LANJUTKAN MEMBACA</p>
+          <div id="lastReadCard"></div>
+        </div>
+        <div id="bookList" class="books-grid"></div>
+      </div>
 
-  if (type === 'kelas') setupKelasUI();
-}
+      <!-- RUANG KELAS -->
+      <div id="kelasSection" class="hidden animate">
+        <div class="sync-card">
 
+          <!-- TAMPILAN GURU -->
+          <div id="guruView" class="hidden">
+            <h3 style="margin-bottom: 12px;">Panel Guru</h3>
 
-// =============================================
-//  BOTTOM SHEET
-// =============================================
-function openSheet() {
-  document.getElementById("sheetOverlay").classList.add("active");
-  document.getElementById("bottomSheet").classList.add("active");
-}
+            <!-- Presentasi With PDF -->
+            <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+              <label style="font-size: 11px; font-weight: 800; color: var(--accent);">PRESENTASI PDF</label>
+              <select id="selectFileBuku" class="input-main" style="width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px;"></select>
+              <button id="btnMulaiPresentasi" onclick="mulaiPresentasiPDF()" class="btn-main" style="margin-top: 10px; background: #10b981; width: 100%;">🚀 Bagikan ke Murid</button>
+            </div>
 
-function closeSheet() {
-  document.getElementById("sheetOverlay").classList.remove("active");
-  document.getElementById("bottomSheet").classList.remove("active");
-}
+            <!-- Kuis Teks -->
+            <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+              <label style="font-size: 11px; font-weight: 800; color: var(--accent);">MENU KUIS</label>
+              <textarea id="quizText" placeholder="Ketik soal kuis di sini..." style="width:100%; height:60px; border-radius:12px; padding:10px; border:1px solid var(--glass-border); font-family:inherit; margin-top:8px; background:var(--card-bg); color:var(--text-main);"></textarea>
+              <button id="btnMulaiQuiz" class="btn-main" onclick="mulaiQuiz()" style="background: #ef4444; width: 100%; margin-top: 10px;">Kirim Kuis</button>
+            </div>
 
-function openBookDetails(title, file, emoji, color) {
-  document.getElementById("sheetTitle").innerText = title;
-  document.getElementById("sheetEmoji").innerText = emoji;
+            <!-- Kuis Dengan jendela dunia ( Buku ) -->
+            <div style="background: var(--input-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px;">
+              <label style="font-size: 11px; font-weight: 800; color: var(--accent);">KUIS BERBASIS BUKU</label>
+              <select id="selectQuizFile" class="input-main" style="width: 100%; padding: 12px; margin-top: 8px;">
+                <option value="osn-kota.pdf">🏆 Kuis OSN Tingkat Kota</option>
+                <option value="geografi 11.pdf">🗺️ Kuis Geografi 11</option>
+                <option value="sosiologi 11.pdf">👥 Kuis Sosiologi 11</option>
+              </select>
+              <button id="btnMulaiQuizFile" onclick="mulaiQuizFile()" class="btn-main" style="margin-top: 10px; background: #ef4444; width: 100%;">Kirim Kuis PDF</button>
+            </div>
 
-  const bookData = books.find(b => b.file === file);
-  document.getElementById("sheetCategory").innerText = bookData ? bookData.category : "Materi";
+            <!-- Kode Kelas & QR -->
+            <p style="font-size: 11px; font-weight: 800; color: var(--text-soft);">KODE KELAS AKTIF</p>
+            <div id="activeCode" style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 10px;">-----</div>
+            <button onclick="refreshKodeKelas()" style="font-size: 11px; background: var(--accent); color: white; border: none; padding: 5px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 10px;">🔄 Perbarui Kode</button>
+            <div id="qrcode" style="margin: 10px auto; padding: 10px; background: white; width: fit-content; border-radius: 10px;"></div>
 
-  const url = `books/${file}`;
-  document.getElementById("sheetPreview").innerHTML = `
-    <div style="height: 60vh; -webkit-overflow-scrolling: touch; overflow-y: scroll;">
-      <iframe src="${url}" width="100%" height="100%" style="border:none; border-radius:15px;"></iframe>
+            <!-- Jawaban Murid -->
+            <div id="rekapJawaban" style="text-align: left; border-top: 2px dashed var(--glass-border); padding-top: 15px; margin-top: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-size: 11px; font-weight: 800; color: var(--accent);">JAWABAN MURID</label>
+                <button onclick="pantauJawaban()" style="font-size: 10px; background: var(--accent); color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer;">Refresh</button>
+              </div>
+              <div id="listJawabanMurid" style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
+                <p style="font-size: 12px; color: var(--text-soft);">Belum ada jawaban...</p>
+              </div>
+            </div>
+
+            <button class="btn-main" onclick="updateClassStatus('Selesai')" style="background: var(--text-soft); margin-top: 20px; width: 100%;">Akhiri Sesi</button>
+          </div>
+
+          <!-- TAMPILAN MURID -->
+          <div id="muridView" class="hidden">
+            <div id="joinArea">
+              <h3>Gabung Kelas</h3>
+              <p style="margin-bottom: 20px; font-size: 14px; color: var(--text-soft);">Masukkan kode dari gurumu</p>
+              <div style="position: relative;">
+                <input type="text" id="inputClassCode" placeholder="KODE" style="text-align: center; margin-bottom: 20px; font-weight: 800; letter-spacing: 4px; width: 100%;">
+                <button onclick="startScan()" style="position: absolute; right: 10px; top: 35%; transform: translateY(-50%); background: none; border: none; font-size: 20px; cursor: pointer;">📷</button>
+              </div>
+              <div id="reader" style="width: 100%; border-radius: 15px; overflow: hidden; margin-top: 10px;" class="hidden"></div>
+              <button class="btn-main" onclick="joinClass()" style="width: 100%;">Masuk</button>
+            </div>
+
+            <div id="liveClassArea" class="hidden">
+              <div style="background: var(--accent); color: white; padding: 16px; border-radius: 16px; margin-bottom: 20px;">
+                <p id="currentStatus" style="font-weight: 800; font-size: 12px;">MENUNGGU GURU...</p>
+              </div>
+              <div id="classContent" style="min-height: 200px; border: 2px dashed var(--glass-border); border-radius: 20px; overflow: hidden; background: var(--input-bg);">
+                <p style="padding: 20px; color: var(--text-soft); text-align: center;">Menunggu konten dari guru...</p>
+              </div>
+              <div id="resetMuridArea" class="hidden" style="margin-top: 20px;">
+                <button onclick="resetTampilanMurid()" class="btn-main" style="background: var(--text-soft); width: 100%;">Ganti Kelas</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <nav class="nav-bar">
+      <div class="nav-item active" id="nav-books" onclick="showSection('books')">Koleksi</div>
+      <div class="nav-item" id="nav-kelas" onclick="showSection('kelas')">Ruang Kelas</div>
+      <div class="nav-item" onclick="logout()" style="color: #ef4444;">Keluar</div>
+    </nav>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ============ BOTTOM SHEET ============ -->
+  <div id="sheetOverlay" class="bottom-sheet-overlay" onclick="closeSheet()"></div>
+  <div id="bottomSheet" class="bottom-sheet">
+    <div class="sheet-handle" onclick="closeSheet()"></div>
+    <div id="sheetContent" style="text-align: center;">
+      <div id="sheetEmoji" style="font-size: 64px; margin-bottom: 16px;"></div>
+      <h2 id="sheetTitle" style="font-size: 24px; font-weight: 800; margin-bottom: 8px;"></h2>
+      <p id="sheetCategory" style="color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 20px;"></p>
+      <div id="sheetPreview"></div>
+      <button id="btnReadNow" class="btn-main" style="background: var(--accent); margin-top: 20px;">Buka Sekarang 📖</button>
     </div>
-  `;
-
-  document.getElementById("btnReadNow").onclick = () => {
-    closeSheet();
-    const lastRead = { file, title, emoji, color: color || (bookData ? bookData.color : ''), time: new Date().getTime() };
-    localStorage.setItem("last_read_book", JSON.stringify(lastRead));
-    renderLastRead();
-    amanBukaBuku(file);
-  };
-
-  openSheet();
-}
-
-async function amanBukaBuku(fileName) {
-  try {
-    const response = await fetch(`books/${fileName}`, { method: 'HEAD' });
-    if (response.ok) {
-      window.open(`books/${fileName}`, '_blank');
-    } else {
-      showToast("⚠️ File belum tersedia atau tidak ditemukan.");
-    }
-  } catch (err) {
-    window.open(`books/${fileName}`, '_blank');
-  }
-}
-
-
-// =============================================
-//  RUANG KELAS - SETUP
-// =============================================
-function setupKelasUI() {
-  const role   = localStorage.getItem("user_role");
-  const isGuru = role === "Guru" || role === "Developer";
-
-  document.getElementById("guruView").classList.toggle("hidden", !isGuru);
-  document.getElementById("muridView").classList.toggle("hidden", isGuru);
-
-  if (isGuru) {
-    populateSelectBuku();
-
-    if (window.pantuanInterval) clearInterval(window.pantuanInterval);
-    window.pantuanInterval = setInterval(pantauJawaban, 3000);
-
-    if (document.getElementById("activeCode").innerText === "-----") {
-      const kode = generateKode();
-      document.getElementById("activeCode").innerText = kode;
-      generateQR(kode);
-    }
-  }
-}
-
-function populateSelectBuku() {
-  const select = document.getElementById("selectFileBuku");
-  if (!select) return;
-  const pelajaran = books.filter(b => b.category === "Pelajaran");
-  select.innerHTML = pelajaran.map(b =>
-    `<option value="${b.file}">${b.emoji} ${b.title}</option>`
-  ).join('');
-}
-
-function generateKode() {
-  return Math.random().toString(36).substring(2, 7).toUpperCase();
-}
-
-function refreshKodeKelas() {
-  const kode = generateKode();
-  document.getElementById("activeCode").innerText = kode;
-  generateQR(kode);
-  showToast("Kode kelas diperbarui! 🔑");
-}
-
-
-// =============================================
-//  RUANG KELAS - GURU
-// =============================================
-function updateClassStatus(status, content = "", onDone = null) {
-  const codeElement = document.getElementById("activeCode");
-  let currentCode   = codeElement.innerText.trim();
-
-  if ((status === "Presentasi" || status === "Kuis") && (currentCode === "-----" || !currentCode)) {
-    currentCode = generateKode();
-    codeElement.innerText = currentCode;
-    generateQR(currentCode);
-  }
-
-  if (status === "Selesai") {
-    fetch(FIREBASE_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: "Selesai", content: "", code: "-----", file: "" })
-    }).then(() => {
-      codeElement.innerText = "-----";
-      document.getElementById("qrcode").innerHTML = "";
-      showToast("Sesi berhasil diakhiri! 👋");
-      if (window.pantuanInterval) clearInterval(window.pantuanInterval);
-      document.getElementById("listJawabanMurid").innerHTML = `<p style="font-size:12px; color:var(--text-soft);">Sesi berakhir.</p>`;
-      if (onDone) onDone();
-    }).catch(() => { showToast("❌ Gagal menghubungi server."); if (onDone) onDone(); });
-    return;
-  }
-
-  fetch(FIREBASE_URL, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      status,
-      content: status === "Kuis" ? content : "",
-      code: currentCode,
-      file: status === "Presentasi" ? content : ""
-    })
-  }).then(res => {
-    if (res.ok) showToast(`Mode ${status} aktif! 🚀`);
-    if (onDone) onDone();
-  }).catch(() => { showToast("❌ Gagal menyambung ke server."); if (onDone) onDone(); });
-}
-
-function setButtonLoading(btn, loadingText) {
-  if (!btn) return null;
-  const orig = btn.innerHTML;
-  btn.innerHTML = `<span class="btn-spinner"></span> ${loadingText}`;
-  btn.disabled = true;
-  return orig;
-}
-
-function resetButton(btn, originalText) {
-  if (!btn) return;
-  btn.innerHTML = originalText;
-  btn.disabled = false;
-}
-
-function mulaiPresentasiPDF() {
-  const file = document.getElementById("selectFileBuku").value;
-  const btn  = document.getElementById("btnMulaiPresentasi");
-  const orig = setButtonLoading(btn, "Membagikan...");
-  updateClassStatus("Presentasi", file, () => resetButton(btn, orig));
-}
-
-function mulaiQuiz() {
-  const soal = document.getElementById("quizText").value.trim();
-  if (!soal) return showToast("Ketik soalnya dulu!");
-  const btn  = document.getElementById("btnMulaiQuiz");
-  const orig = setButtonLoading(btn, "Mengirim...");
-  updateClassStatus("Kuis", soal, () => resetButton(btn, orig));
-}
-
-function mulaiQuizFile() {
-  const file = document.getElementById("selectQuizFile").value;
-  if (!file) return showToast("Pilih file kuis dulu!");
-  const contentPayload = JSON.stringify({ tipe: "pdf", namaFile: file });
-  const btn  = document.getElementById("btnMulaiQuizFile");
-  const orig = setButtonLoading(btn, "Mengirim...");
-  updateClassStatus("Kuis", contentPayload, () => resetButton(btn, orig));
-}
-
-function pantauJawaban() {
-  const code = document.getElementById("activeCode").innerText;
-  if (code === "-----" || !code) return;
-  fetch(`${FIREBASE_BASE}/answers/${code}.json`)
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById("listJawabanMurid");
-      if (!data) {
-        container.innerHTML = `<p style="font-size:12px; opacity:0.5; text-align:center; padding:10px;">Menunggu jawaban murid...</p>`;
-        return;
-      }
-      container.innerHTML = Object.keys(data).map(key => `
-        <div class="answer-bubble animate">
-          <div class="answer-header">
-            <span class="student-name">👤 ${esc(data[key].nama)}</span>
-            <span style="color:var(--text-soft);">${esc(data[key].waktu || '')}</span>
-          </div>
-          <div style="font-size:13px;">${esc(data[key].jawaban)}</div>
-        </div>
-      `).join('');
-    })
-    .catch(() => { /* silent fail saat offline */ });
-}
-
-
-// =============================================
-//  RUANG KELAS - MURID
-// =============================================
-function joinClass() {
-  const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
-  if (!input) return showToast("Masukkan kode kelas dulu!");
-
-  const btn          = document.querySelector("#joinArea .btn-main");
-  const originalText = btn ? btn.innerHTML : null;
-  if (btn) { btn.innerHTML = `<span class="btn-spinner"></span> Menyambungkan...`; btn.disabled = true; }
-
-  fetch(FIREBASE_URL)
-    .then(res => res.json())
-    .then(data => {
-      if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
-      if (data && input === data.code) {
-        lastSyncStatus = ""; // reset agar konten terbaru selalu dirender saat baru masuk
-        document.getElementById("joinArea").classList.add("hidden");
-        document.getElementById("liveClassArea").classList.remove("hidden");
-        syncInterval = setInterval(syncWithGuru, 3000);
-        showToast("Berhasil masuk kelas! 🎉");
-      } else {
-        showToast("Kode salah atau kelas belum dibuka!");
-      }
-    })
-    .catch(() => {
-      if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
-      showToast("❌ Tidak bisa terhubung. Periksa koneksi.");
-    });
-}
-
-function syncWithGuru() {
-  fetch(FIREBASE_URL)
-    .then(res => res.json())
-    .then(data => {
-      if (!data || data.status === "Selesai") {
-        handleSesiBerakhir();
-        return;
-      }
-
-      const container  = document.getElementById("classContent");
-      const statusText = document.getElementById("currentStatus");
-
-      if (data.status !== lastStatus) {
-        showToast(`Status: ${data.status}`);
-        lastStatus = data.status;
-      }
-
-      if (data.status === "Presentasi") {
-        statusText.innerText = "📺 GURU SEDANG PRESENTASI";
-        if (data.status !== lastSyncStatus || container.querySelector('iframe')?.src !== `${location.origin}/books/${data.file}`) {
-          container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="420px" class="iframe" style="border:none;"></iframe>`;
-          lastSyncStatus = data.status + data.file;
-        }
-
-      } else if (data.status === "Kuis") {
-        statusText.innerText = "📝 KUIS SEDANG BERLANGSUNG";
-        let parsedContent = data.content;
-        if (typeof data.content === 'string') {
-          try { parsedContent = JSON.parse(data.content); } catch (e) { parsedContent = data.content; }
-        }
-
-        const isPdf        = parsedContent && typeof parsedContent === 'object' && parsedContent.tipe === "pdf";
-        const contentKey   = data.status + (isPdf ? parsedContent.namaFile : data.content);
-        if (contentKey === lastSyncStatus) return;
-        lastSyncStatus = contentKey;
-
-        if (isPdf) {
-          container.innerHTML = `
-            <div style="padding:16px;" class="animate">
-              <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">📄 Kuis dari File PDF:</p>
-              <iframe src="books/${parsedContent.namaFile}" width="100%" height="300px" style="border:none; border-radius:12px;"></iframe>
-              <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu di sini..." style="width:100%; height:80px; margin-top:12px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
-              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
-            </div>`;
-        } else {
-          container.innerHTML = `
-            <div style="padding:20px; text-align:left;" class="animate">
-              <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">❓ Soal: ${esc(data.content)}</p>
-              <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." style="width:100%; height:100px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
-              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
-            </div>`;
-        }
-
-      } else {
-        if (lastSyncStatus !== "menunggu") {
-          statusText.innerText = "⏳ MENUNGGU GURU...";
-          container.innerHTML  = `<div style="padding:40px; text-align:center; color:var(--text-soft);">Sesi belum dimulai oleh guru.</div>`;
-          lastSyncStatus = "menunggu";
-        }
-      }
-    })
-    .catch(() => { /* silent fail */ });
-}
-
-function kirimJawabanKeGuru(code, nama) {
-  const isiJawaban = document.getElementById("jawabanMuridText")?.value?.trim();
-  if (!isiJawaban) return showToast("Jawaban tidak boleh kosong!");
-
-  const preview = isiJawaban.length > 80 ? isiJawaban.substring(0, 80) + "..." : isiJawaban;
-  if (!confirm(`Kirim jawaban ini?\n\n"${preview}"`)) return;
-
-  const kirimBtn     = document.getElementById("btnKirimJawaban");
-  const originalText = kirimBtn ? kirimBtn.innerHTML : null;
-  if (kirimBtn) {
-    kirimBtn.innerHTML = '<span class="btn-spinner"></span> Mengirim...';
-    kirimBtn.disabled  = true;
-  }
-  const safeKey     = nama.replace(/[.#$/[\]\s]/g, '_');
-  const uniqueKey   = `${safeKey}_${Date.now()}`;
-  const URL_JAWABAN = `${FIREBASE_BASE}/answers/${code}/${uniqueKey}.json`;
-
-  fetch(URL_JAWABAN, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nama, jawaban: isiJawaban, waktu: new Date().toLocaleTimeString() })
-  }).then(res => {
-    if (res.ok) {
-      showToast("Jawaban terkirim! ✅");
-      const input = document.getElementById("jawabanMuridText");
-      if (input) input.disabled = true;
-      if (kirimBtn) {
-        kirimBtn.innerHTML = "✅ Terkirim";
-        kirimBtn.disabled  = true;
-        kirimBtn.style.background = "#10b981";
-      }
-    } else {
-      showToast("❌ Gagal kirim. Coba lagi.");
-      if (kirimBtn) { kirimBtn.innerHTML = originalText; kirimBtn.disabled = false; }
-    }
-  }).catch(() => {
-    showToast("❌ Tidak ada koneksi.");
-    if (kirimBtn) { kirimBtn.innerHTML = originalText; kirimBtn.disabled = false; }
-  });
-}
-
-function handleSesiBerakhir() {
-  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
-  lastStatus     = "";
-  lastSyncStatus = "";
-
-  document.getElementById("currentStatus").innerText = "✅ SESI TELAH BERAKHIR";
-  document.getElementById("classContent").innerHTML = `
-    <div style="padding:40px; text-align:center;">
-      <p style="font-size:32px; margin-bottom:12px;">🎓</p>
-      <p style="margin-bottom:20px; color:var(--text-soft);">Guru telah mengakhiri sesi ini.</p>
-      <button onclick="location.reload()" class="btn-main" style="max-width:200px; margin:0 auto;">Keluar Kelas</button>
-    </div>`;
-  document.getElementById("resetMuridArea").classList.remove("hidden");
-  showToast("Sesi belajar telah selesai! 👋");
-}
-
-function showInputKodeKelas() {
-  document.getElementById("joinArea").classList.remove("hidden");
-  document.getElementById("liveClassArea").classList.add("hidden");
-  document.getElementById("inputClassCode").value = "";
-  lastStatus     = "";
-  lastSyncStatus = "";
-}
-
-function resetTampilanMurid() {
-  document.getElementById("resetMuridArea").classList.add("hidden");
-  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
-  showInputKodeKelas();
-  showToast("Silakan masuk ke kelas baru.");
-}
-
-
-// =============================================
-//  QRISS ANJAY LANGSUNG SAJA ( QR )
-// =============================================
-function generateQR(code) {
-  const el = document.getElementById("qrcode");
-  el.innerHTML = "";
-  new QRCode(el, { text: code, width: 128, height: 128 });
-}
-
-let html5QrScanner = null;
-
-function startScan() {
-  if (html5QrScanner) return;
-
-  const reader = document.getElementById("reader");
-  reader.classList.remove("hidden");
-
-  if (!document.getElementById("btnStopScan")) {
-    const stopBtn       = document.createElement("button");
-    stopBtn.id          = "btnStopScan";
-    stopBtn.innerHTML   = "❌ Batalkan Scan";
-    stopBtn.className   = "btn-main";
-    stopBtn.style.cssText = "margin-top: 10px; background: #ef4444;";
-    stopBtn.onclick     = stopScan;
-    reader.parentNode.insertBefore(stopBtn, reader.nextSibling);
-  }
-
-  html5QrScanner = new Html5Qrcode("reader");
-  html5QrScanner.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: { width: 250, height: 250 } },
-    (decodedText) => {
-      document.getElementById("inputClassCode").value = decodedText;
-      stopScan();
-      joinClass();
-    }
-  ).catch(err => {
-    showToast("Gagal buka kamera: " + err);
-    stopScan();
-  });
-}
-
-function stopScan() {
-  if (html5QrScanner) {
-    html5QrScanner.stop().then(() => {
-      html5QrScanner = null;
-      document.getElementById("reader").classList.add("hidden");
-      const btn = document.getElementById("btnStopScan");
-      if (btn) btn.remove();
-    }).catch(() => {
-      html5QrScanner = null;
-    });
-  }
-}
-
-
-// =============================================
-//  TEMA? TEMA ITU APA YA ?
-// =============================================
-function toggleTheme() {
-  const current = document.body.getAttribute('data-theme');
-  const next    = current === 'dark' ? 'light' : 'dark';
-  document.body.setAttribute('data-theme', next);
-  localStorage.setItem("theme", next);
-}
-
-function applySavedTheme() {
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
-}
-
-
-// =============================================
-//  TOAST
-// =============================================
-function showToast(msg) {
-  const toast   = document.getElementById("toast");
-  toast.innerText = msg;
-  toast.style.display = "block";
-  clearTimeout(toast._timer);
-  toast._timer  = setTimeout(() => { toast.style.display = "none"; }, 2500);
-}
-
-
-// =============================================
-//  MODE ADMIN 😈😈
-// =============================================
-function toggleDevMenu() {
-  document.getElementById("devMenu").classList.toggle("hidden");
-}
-
-function quickSwitch(newRole) {
-  localStorage.setItem("user_role", newRole);
-  localStorage.setItem("user_name", "Dev-" + newRole);
-  initApp();
-  showSection('kelas');
-  toggleDevMenu();
-  showToast(`Switched ke role: ${newRole} 🛠️`);
-}
-
-function toggleFullScreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-  }
-}
-
-
-// =============================================
-//  EVENT LISTENERS & INIT
-// =============================================
-document.addEventListener("DOMContentLoaded", () => {
-  applySavedTheme();
-
-  const mc = new Hammer(document.body);
-  mc.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
-
-  mc.on("swipeleft", (e) => {
-    if (e.target.closest('.category-container')) return;
-    if (localStorage.getItem("user_role") && navigator.onLine) {
-      showSection('kelas');
-    }
-  });
-
-  mc.on("swiperight", (e) => {
-    if (e.target.closest('.category-container')) return;
-    if (localStorage.getItem("user_role")) {
-      showSection('books');
-    }
-  });
-
-  document.getElementById("usernameInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleLogin();
-  });
-  document.getElementById("passcodeInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleLogin();
-  });
-  document.getElementById("inputClassCode").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") joinClass();
-  });
-
-  const bottomSheet = document.getElementById("bottomSheet");
-  if (bottomSheet) {
-    const sheetHammer = new Hammer(bottomSheet);
-    sheetHammer.get('swipe').set({ direction: Hammer.DIRECTION_DOWN });
-    sheetHammer.on("swipedown", () => {
-      if (bottomSheet.classList.contains("active")) closeSheet();
-    });
-  }
-
-  // Hemat baterai & kuota: pause polling saat tab tidak aktif
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      if (syncInterval)            { clearInterval(syncInterval);            }
-      if (window.pantuanInterval)  { clearInterval(window.pantuanInterval);  }
-    } else {
-      // Resume saat tab aktif kembali
-      if (document.getElementById("liveClassArea") &&
-          !document.getElementById("liveClassArea").classList.contains("hidden")) {
-        if (!syncInterval) syncInterval = setInterval(syncWithGuru, 3000);
-      }
-      const role = localStorage.getItem("user_role");
-      if ((role === "Guru" || role === "Developer") &&
-          document.getElementById("kelasSection") &&
-          !document.getElementById("kelasSection").classList.contains("hidden")) {
-        if (!window.pantuanInterval) window.pantuanInterval = setInterval(pantauJawaban, 3000);
-      }
-    }
-  });
-});
-
-window.addEventListener('online',  updateOnlineStatus);
-window.addEventListener('offline', updateOnlineStatus);
-
-window.onload = () => {
-  initApp();
-};
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('✅ Service Worker aktif:', reg.scope))
-      .catch(err => console.error('❌ Service Worker gagal:', err));
-  });
-}
+  </div>
+
+  <!-- ============ AKU DEVELOPER AWOKOAWKO ============ -->
+  <div id="devFab" class="hidden" style="position: fixed; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); right: 20px; z-index: 9999;">
+    <button onclick="toggleDevMenu()" style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; border: none; box-shadow: var(--shadow-lg); font-size: 24px; cursor: pointer;">🛠️</button>
+    <div id="devMenu" class="hidden" style="position: absolute; bottom: 70px; right: 0; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 15px; padding: 10px; width: 170px; box-shadow: var(--shadow-lg);">
+      <p style="font-size: 10px; font-weight: 800; color: var(--text-soft); margin-bottom: 8px; text-align: center;">SWITCH ROLE</p>
+      <button onclick="quickSwitch('Guru')"  class="btn-main" style="font-size: 12px; padding: 8px; margin-bottom: 5px; width: 100%;">Jadi Guru</button>
+      <button onclick="quickSwitch('Murid')" class="btn-main" style="font-size: 12px; padding: 8px; width: 100%;">Jadi Murid</button>
+      <button onclick="toggleFullScreen()"   class="btn-main" style="font-size: 12px; padding: 8px; margin-top: 5px; width: 100%; background: #475569;">⛶ Layar Penuh</button>
+    </div>
+  </div>
+
+  <!-- ============ ini namanya fitur baca  ============ -->
+  <div id="pdfReaderModal" class="hidden" style="position: fixed; inset: 0; background: var(--bg-body); z-index: 9999; display: flex; flex-direction: column;">
+    
+    <div style="background: var(--nav-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-top: calc(15px + var(--safe-top)); backdrop-filter: blur(16px);">
+      <button onclick="closePDFReader()" style="background: none; border: none; font-size: 20px; cursor: pointer;">❌</button>
+      <span id="pdfTitle" style="font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">Memuat Buku...</span>
+      <div style="width: 24px;"></div> </div>
+    
+    <div id="pdfScrollArea" style="flex: 1; overflow: auto; background: #e2e8f0; text-align: center; padding: 10px;">
+      <canvas id="pdf-canvas" style="max-width: 100%; box-shadow: var(--shadow-md); border-radius: 8px;"></canvas>
+    </div>
+    
+    <div style="background: var(--nav-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--glass-border); padding-bottom: calc(15px + var(--safe-bottom)); backdrop-filter: blur(16px);">
+      <button class="btn-main" onclick="onPrevPage()" style="width: auto; padding: 10px 20px; font-size: 13px;">⬅️ Prev</button>
+      <span style="font-weight: 800; font-size: 13px; color: var(--text-main);"><span id="page-num">1</span> / <span id="page-count">?</span></span>
+      <button class="btn-main" onclick="onNextPage()" style="width: auto; padding: 10px 20px; font-size: 13px;">Next ➡️</button>
+    </div>
+  </div>
+
+</body>
+</html>
