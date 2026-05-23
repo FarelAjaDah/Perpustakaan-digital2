@@ -1,20 +1,22 @@
-const CACHE_NAME = 'pustaka-furina-v4'; // jangan lupa diganti mas
+const CACHE_NAME = 'pustaka-furina-V4'; // jangan lupa diganti ya mas 🥰
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
   './script.js',
   './manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
+  './js/pdf.min.js',
+  './js/pdf.worker.min.js',
 ];
 
 // Install & Precaching file inti
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return Promise.allSettled(
+  ASSETS_TO_CACHE.map(asset => cache.add(asset))) 
     })
-  );
+  );  
   self.skipWaiting();
 });
 
@@ -34,7 +36,6 @@ self.addEventListener('activate', (event) => {
 
 // Cache First, then Network
 self.addEventListener('fetch', (event) => {
-  // Jangan cegat request ke Firebase agar tidak bug
   if (event.request.url.includes('firebasedatabase') || event.request.url.includes('google')) {
     return;
   }
@@ -68,4 +69,4 @@ function saveToCache(request, response) {
   return response;
 }
 
-// Last updated: 11 Mei 2026
+// Last updated:24 mei 2026 - 02:03 AM (GMT +7)
