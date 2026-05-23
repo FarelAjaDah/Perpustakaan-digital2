@@ -6,9 +6,11 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
+  "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
+      "src": "https://i.pinimg.com/736x/4e/4d/c2/4e4dc207aa07b2fea908cce510289c8e.jpg",
       "sizes": "512x512",
       "type": "image/png"
     }
