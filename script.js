@@ -76,19 +76,6 @@ function initApp() {
     return;
   }
 
-  const devFab = document.getElementById("devFab");
-  if (role === "Developer" || role === "Guru") {
-    devFab.classList.remove("hidden");
-  } else {
-    devFab.classList.add("hidden");
-  }
-
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("mainPage").classList.remove("hidden");
-
-  document.getElementById("roleBadge").innerText = role.toUpperCase();
-  document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
-
   function updateVisualRole() {
     const role = localStorage.getItem("user_role"); // Ambil role dari storage
     const badge = document.getElementById("roleBadge");
@@ -105,6 +92,19 @@ function initApp() {
         }
     }
 }
+
+  const devFab = document.getElementById("devFab");
+  if (role === "Developer" || role === "Guru") {
+    devFab.classList.remove("hidden");
+  } else {
+    devFab.classList.add("hidden");
+  }
+
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("mainPage").classList.remove("hidden");
+
+  document.getElementById("roleBadge").innerText = role.toUpperCase();
+  document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
 
   renderBooks("");
   renderLastRead();
