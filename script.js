@@ -1,15 +1,17 @@
 // ==============================================
 //  PUSTAKA FURINA v5 - script.js
-//  Last Updated: 11 Mei 2026
-//  Bug Fixes: mulaiQuizFile, setCategory, swipe conflict,
-//             Enter key joinClass, double applySavedTheme
+//  Last Updated: 24 Mei 2026
 // ==============================================
 
-const FIREBASE_URL = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/class_sync.json";
+// =============================================
+//  KONSTANTA FIREBASE
+// =============================================
+const FIREBASE_BASE = "https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app";
+const FIREBASE_URL  = `${FIREBASE_BASE}/class_sync.json`;
 
 const ACCESS_KEYS = {
   "AKUGURU": "Guru",
-  "MURID": "Murid"
+  "MURID":   "Murid"
 };
 
 const books = [
@@ -35,9 +37,22 @@ const books = [
 ];
 
 let currentCategory = "Semua";
-let syncInterval = null;
-let lastStatus = "";
+let syncInterval    = null;
+let lastStatus      = "";
+let lastSyncStatus  = ""; 
 
+
+// =============================================
+//  BABU PEMBANTU PEMBANTAI ANJAY
+// =============================================
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 
 // =============================================
@@ -67,6 +82,22 @@ function handleLogin() {
   }
 }
 
+function updateVisualRole() {
+  const role  = localStorage.getItem("user_role");
+  const badge = document.getElementById("roleBadge");
+  if (!role || !badge) return;
+
+  document.body.setAttribute("data-user-role", role);
+
+  if (role === "Guru") {
+    badge.innerText = "🧐Akun Sensei";
+  } else if (role === "Developer") {
+    badge.innerText = "🛠️ Developer";
+  } else {
+    badge.innerText = "📖 Akun Murid";
+  }
+}
+
 function initApp() {
   const role = localStorage.getItem("user_role");
 
@@ -75,23 +106,6 @@ function initApp() {
     document.getElementById("loginPage").classList.remove("hidden");
     return;
   }
-
-  function updateVisualRole() {
-    const role = localStorage.getItem("user_role"); // Ambil role dari storage
-    const badge = document.getElementById("roleBadge");
-    
-    if (role) {
-        // Pasang atribut ke body agar CSS bisa mendeteksi
-        document.body.setAttribute("data-user-role", role);
-        
-        // Update teks badge
-        if (role === "Guru") {
-            badge.innerText = "⭐ Akun Guru";
-        } else {
-            badge.innerText = "📖 Akun Murid";
-        }
-    }
-}
 
   const devFab = document.getElementById("devFab");
   if (role === "Developer" || role === "Guru") {
@@ -103,7 +117,7 @@ function initApp() {
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("mainPage").classList.remove("hidden");
 
-  document.getElementById("roleBadge").innerText = role.toUpperCase();
+  updateVisualRole();
   document.getElementById("welcomeText").innerText = `Halo, ${localStorage.getItem("user_name")}! 👋`;
 
   renderBooks("");
@@ -126,7 +140,7 @@ function logout() {
 // =============================================
 function updateOnlineStatus() {
   const statusDiv = document.getElementById("connectionStatus");
-  const navKelas = document.getElementById("nav-kelas");
+  const navKelas  = document.getElementById("nav-kelas");
 
   if (!statusDiv || !navKelas) return;
 
@@ -147,12 +161,12 @@ function updateOnlineStatus() {
 //  BUKU & KOLEKSI
 // =============================================
 function renderBooks(kw) {
-  const list = document.getElementById("bookList");
-  const role = localStorage.getItem("user_role");
+  const list    = document.getElementById("bookList");
+  const role    = localStorage.getItem("user_role");
   const keyword = (kw || "").toLowerCase();
 
   const filtered = books.filter(b => {
-    const matchKeyword = b.title.toLowerCase().includes(keyword);
+    const matchKeyword  = b.title.toLowerCase().includes(keyword);
     const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
 
     if ((b.category === "Latihan" || b.category === "Ujian") && role === "Murid") {
@@ -163,6 +177,7 @@ function renderBooks(kw) {
   });
 
   document.getElementById("bookCounter").innerText = `${filtered.length} buku ditemukan`;
+
   if (filtered.length === 0) {
     list.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-soft);" class="animate">
@@ -186,9 +201,6 @@ function renderBooks(kw) {
   `).join('');
 }
 
-// BUG FIX: setCategory — sebelumnya bisa matiin active-cat di tombol yang harusnya aktif
-// karena pakai .includes() yang bisa partial-match antar nama kategori.
-// Sekarang pakai data-category attribute untuk exact match.
 function setCategory(cat) {
   currentCategory = cat;
   document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -200,8 +212,8 @@ function setCategory(cat) {
 
 function renderLastRead() {
   const lastReadData = localStorage.getItem("last_read_book");
-  const container = document.getElementById("lastReadContainer");
-  const cardPlace = document.getElementById("lastReadCard");
+  const container    = document.getElementById("lastReadContainer");
+  const cardPlace    = document.getElementById("lastReadCard");
 
   if (!container || !cardPlace) return;
 
@@ -303,13 +315,15 @@ async function amanBukaBuku(fileName) {
 //  RUANG KELAS - SETUP
 // =============================================
 function setupKelasUI() {
-  const role = localStorage.getItem("user_role");
+  const role   = localStorage.getItem("user_role");
   const isGuru = role === "Guru" || role === "Developer";
 
   document.getElementById("guruView").classList.toggle("hidden", !isGuru);
   document.getElementById("muridView").classList.toggle("hidden", isGuru);
 
   if (isGuru) {
+    populateSelectBuku();
+
     if (window.pantuanInterval) clearInterval(window.pantuanInterval);
     window.pantuanInterval = setInterval(pantauJawaban, 3000);
 
@@ -319,6 +333,15 @@ function setupKelasUI() {
       generateQR(kode);
     }
   }
+}
+
+function populateSelectBuku() {
+  const select = document.getElementById("selectFileBuku");
+  if (!select) return;
+  const pelajaran = books.filter(b => b.category === "Pelajaran");
+  select.innerHTML = pelajaran.map(b =>
+    `<option value="${b.file}">${b.emoji} ${b.title}</option>`
+  ).join('');
 }
 
 function generateKode() {
@@ -338,7 +361,7 @@ function refreshKodeKelas() {
 // =============================================
 function updateClassStatus(status, content = "", onDone = null) {
   const codeElement = document.getElementById("activeCode");
-  let currentCode = codeElement.innerText.trim();
+  let currentCode   = codeElement.innerText.trim();
 
   if ((status === "Presentasi" || status === "Kuis") && (currentCode === "-----" || !currentCode)) {
     currentCode = generateKode();
@@ -393,7 +416,7 @@ function resetButton(btn, originalText) {
 
 function mulaiPresentasiPDF() {
   const file = document.getElementById("selectFileBuku").value;
-  const btn = document.querySelector("#guruView button[onclick='mulaiPresentasiPDF()']");
+  const btn  = document.getElementById("btnMulaiPresentasi");
   const orig = setButtonLoading(btn, "Membagikan...");
   updateClassStatus("Presentasi", file, () => resetButton(btn, orig));
 }
@@ -401,20 +424,16 @@ function mulaiPresentasiPDF() {
 function mulaiQuiz() {
   const soal = document.getElementById("quizText").value.trim();
   if (!soal) return showToast("Ketik soalnya dulu!");
-  const btn = document.querySelector("#guruView button[onclick='mulaiQuiz()']");
+  const btn  = document.getElementById("btnMulaiQuiz");
   const orig = setButtonLoading(btn, "Mengirim...");
   updateClassStatus("Kuis", soal, () => resetButton(btn, orig));
 }
 
-// BUG FIX: sebelumnya mengirim object JS langsung sebagai `content`,
-// yang menyebabkan Firebase menerima data tidak konsisten dan murid
-// tidak bisa parse data.content.tipe dengan benar.
-// Sekarang dikirim sebagai JSON string dan di-parse di sisi murid.
 function mulaiQuizFile() {
   const file = document.getElementById("selectQuizFile").value;
   if (!file) return showToast("Pilih file kuis dulu!");
   const contentPayload = JSON.stringify({ tipe: "pdf", namaFile: file });
-  const btn = document.querySelector("#guruView button[onclick='mulaiQuizFile()']");
+  const btn  = document.getElementById("btnMulaiQuizFile");
   const orig = setButtonLoading(btn, "Mengirim...");
   updateClassStatus("Kuis", contentPayload, () => resetButton(btn, orig));
 }
@@ -422,8 +441,7 @@ function mulaiQuizFile() {
 function pantauJawaban() {
   const code = document.getElementById("activeCode").innerText;
   if (code === "-----" || !code) return;
-
-  fetch(`https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}.json`)
+  fetch(`${FIREBASE_BASE}/answers/${code}.json`)
     .then(res => res.json())
     .then(data => {
       const container = document.getElementById("listJawabanMurid");
@@ -434,10 +452,10 @@ function pantauJawaban() {
       container.innerHTML = Object.keys(data).map(key => `
         <div class="answer-bubble animate">
           <div class="answer-header">
-            <span class="student-name">👤 ${data[key].nama}</span>
-            <span style="color:var(--text-soft);">${data[key].waktu || ''}</span>
+            <span class="student-name">👤 ${esc(data[key].nama)}</span>
+            <span style="color:var(--text-soft);">${esc(data[key].waktu || '')}</span>
           </div>
-          <div style="font-size:13px;">${data[key].jawaban}</div>
+          <div style="font-size:13px;">${esc(data[key].jawaban)}</div>
         </div>
       `).join('');
     })
@@ -452,8 +470,7 @@ function joinClass() {
   const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
   if (!input) return showToast("Masukkan kode kelas dulu!");
 
-  // IMPROVEMENT: loading state supaya user tau sedang proses
-  const btn = document.querySelector("#joinArea .btn-main");
+  const btn          = document.querySelector("#joinArea .btn-main");
   const originalText = btn ? btn.innerHTML : null;
   if (btn) { btn.innerHTML = `<span class="btn-spinner"></span> Menyambungkan...`; btn.disabled = true; }
 
@@ -462,6 +479,7 @@ function joinClass() {
     .then(data => {
       if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
       if (data && input === data.code) {
+        lastSyncStatus = ""; // reset agar konten terbaru selalu dirender saat baru masuk
         document.getElementById("joinArea").classList.add("hidden");
         document.getElementById("liveClassArea").classList.remove("hidden");
         syncInterval = setInterval(syncWithGuru, 3000);
@@ -485,7 +503,7 @@ function syncWithGuru() {
         return;
       }
 
-      const container = document.getElementById("classContent");
+      const container  = document.getElementById("classContent");
       const statusText = document.getElementById("currentStatus");
 
       if (data.status !== lastStatus) {
@@ -495,22 +513,22 @@ function syncWithGuru() {
 
       if (data.status === "Presentasi") {
         statusText.innerText = "📺 GURU SEDANG PRESENTASI";
-        container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="420px" class="iframe" style="border:none;"></iframe>`;
-      } else if (data.status === "Kuis") {
-        statusText.innerText = "📝 KUIS SEDANG BERLANGSUNG";
-
-        // BUG FIX: data.content sekarang bisa berupa JSON string (dari mulaiQuizFile)
-        // atau plain string (dari mulaiQuiz). Parse dulu, kalau gagal berarti plain string.
-        let parsedContent = data.content;
-        if (typeof data.content === 'string') {
-          try {
-            parsedContent = JSON.parse(data.content);
-          } catch (e) {
-            parsedContent = data.content; // tetap plain string
-          }
+        if (data.status !== lastSyncStatus || container.querySelector('iframe')?.src !== `${location.origin}/books/${data.file}`) {
+          container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="420px" class="iframe" style="border:none;"></iframe>`;
+          lastSyncStatus = data.status + data.file;
         }
 
-        const isPdf = parsedContent && typeof parsedContent === 'object' && parsedContent.tipe === "pdf";
+      } else if (data.status === "Kuis") {
+        statusText.innerText = "📝 KUIS SEDANG BERLANGSUNG";
+        let parsedContent = data.content;
+        if (typeof data.content === 'string') {
+          try { parsedContent = JSON.parse(data.content); } catch (e) { parsedContent = data.content; }
+        }
+
+        const isPdf        = parsedContent && typeof parsedContent === 'object' && parsedContent.tipe === "pdf";
+        const contentKey   = data.status + (isPdf ? parsedContent.namaFile : data.content);
+        if (contentKey === lastSyncStatus) return;
+        lastSyncStatus = contentKey;
 
         if (isPdf) {
           container.innerHTML = `
@@ -518,19 +536,23 @@ function syncWithGuru() {
               <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">📄 Kuis dari File PDF:</p>
               <iframe src="books/${parsedContent.namaFile}" width="100%" height="300px" style="border:none; border-radius:12px;"></iframe>
               <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu di sini..." style="width:100%; height:80px; margin-top:12px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
-              <button class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
+              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
             </div>`;
         } else {
           container.innerHTML = `
             <div style="padding:20px; text-align:left;" class="animate">
-              <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">❓ Soal: ${data.content}</p>
+              <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">❓ Soal: ${esc(data.content)}</p>
               <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." style="width:100%; height:100px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
-              <button class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
+              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
             </div>`;
         }
+
       } else {
-        statusText.innerText = "⏳ MENUNGGU GURU...";
-        container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-soft);">Sesi belum dimulai oleh guru.</div>`;
+        if (lastSyncStatus !== "menunggu") {
+          statusText.innerText = "⏳ MENUNGGU GURU...";
+          container.innerHTML  = `<div style="padding:40px; text-align:center; color:var(--text-soft);">Sesi belum dimulai oleh guru.</div>`;
+          lastSyncStatus = "menunggu";
+        }
       }
     })
     .catch(() => { /* silent fail */ });
@@ -541,15 +563,17 @@ function kirimJawabanKeGuru(code, nama) {
   if (!isiJawaban) return showToast("Jawaban tidak boleh kosong!");
 
   const preview = isiJawaban.length > 80 ? isiJawaban.substring(0, 80) + "..." : isiJawaban;
-if (!confirm(`Kirim jawaban ini?\n\n"${preview}"`)) return;
-  const kirimBtn = document.querySelector("#classContent .btn-main");
+  if (!confirm(`Kirim jawaban ini?\n\n"${preview}"`)) return;
+
+  const kirimBtn     = document.getElementById("btnKirimJawaban");
   const originalText = kirimBtn ? kirimBtn.innerHTML : null;
   if (kirimBtn) {
     kirimBtn.innerHTML = '<span class="btn-spinner"></span> Mengirim...';
-    kirimBtn.disabled = true;
+    kirimBtn.disabled  = true;
   }
-
-  const URL_JAWABAN = `https://perpustakaan-digital-5e62a-default-rtdb.asia-southeast1.firebasedatabase.app/answers/${code}/${nama}.json`;
+  const safeKey     = nama.replace(/[.#$/[\]\s]/g, '_');
+  const uniqueKey   = `${safeKey}_${Date.now()}`;
+  const URL_JAWABAN = `${FIREBASE_BASE}/answers/${code}/${uniqueKey}.json`;
 
   fetch(URL_JAWABAN, {
     method: 'PUT',
@@ -562,7 +586,7 @@ if (!confirm(`Kirim jawaban ini?\n\n"${preview}"`)) return;
       if (input) input.disabled = true;
       if (kirimBtn) {
         kirimBtn.innerHTML = "✅ Terkirim";
-        kirimBtn.disabled = true;
+        kirimBtn.disabled  = true;
         kirimBtn.style.background = "#10b981";
       }
     } else {
@@ -577,7 +601,8 @@ if (!confirm(`Kirim jawaban ini?\n\n"${preview}"`)) return;
 
 function handleSesiBerakhir() {
   if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
-  lastStatus = "";
+  lastStatus     = "";
+  lastSyncStatus = "";
 
   document.getElementById("currentStatus").innerText = "✅ SESI TELAH BERAKHIR";
   document.getElementById("classContent").innerHTML = `
@@ -594,7 +619,8 @@ function showInputKodeKelas() {
   document.getElementById("joinArea").classList.remove("hidden");
   document.getElementById("liveClassArea").classList.add("hidden");
   document.getElementById("inputClassCode").value = "";
-  lastStatus = "";
+  lastStatus     = "";
+  lastSyncStatus = "";
 }
 
 function resetTampilanMurid() {
@@ -606,7 +632,7 @@ function resetTampilanMurid() {
 
 
 // =============================================
-//  QR CODE
+//  QRISS ANJAY LANGSUNG SAJA ( QR )
 // =============================================
 function generateQR(code) {
   const el = document.getElementById("qrcode");
@@ -623,12 +649,12 @@ function startScan() {
   reader.classList.remove("hidden");
 
   if (!document.getElementById("btnStopScan")) {
-    const stopBtn = document.createElement("button");
-    stopBtn.id = "btnStopScan";
-    stopBtn.innerHTML = "❌ Batalkan Scan";
-    stopBtn.className = "btn-main";
+    const stopBtn       = document.createElement("button");
+    stopBtn.id          = "btnStopScan";
+    stopBtn.innerHTML   = "❌ Batalkan Scan";
+    stopBtn.className   = "btn-main";
     stopBtn.style.cssText = "margin-top: 10px; background: #ef4444;";
-    stopBtn.onclick = stopScan;
+    stopBtn.onclick     = stopScan;
     reader.parentNode.insertBefore(stopBtn, reader.nextSibling);
   }
 
@@ -660,12 +686,13 @@ function stopScan() {
   }
 }
 
+
 // =============================================
-//  TEMA
+//  TEMA? TEMA ITU APA YA ?
 // =============================================
 function toggleTheme() {
   const current = document.body.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
+  const next    = current === 'dark' ? 'light' : 'dark';
   document.body.setAttribute('data-theme', next);
   localStorage.setItem("theme", next);
 }
@@ -680,16 +707,16 @@ function applySavedTheme() {
 //  TOAST
 // =============================================
 function showToast(msg) {
-  const toast = document.getElementById("toast");
+  const toast   = document.getElementById("toast");
   toast.innerText = msg;
   toast.style.display = "block";
   clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => { toast.style.display = "none"; }, 2500);
+  toast._timer  = setTimeout(() => { toast.style.display = "none"; }, 2500);
 }
 
 
 // =============================================
-//  DEVELOPER MODE
+//  MODE ADMIN 😈😈
 // =============================================
 function toggleDevMenu() {
   document.getElementById("devMenu").classList.toggle("hidden");
@@ -718,31 +745,30 @@ function toggleFullScreen() {
 // =============================================
 document.addEventListener("DOMContentLoaded", () => {
   applySavedTheme();
+
   const mc = new Hammer(document.body);
   mc.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
   mc.on("swipeleft", (e) => {
-    if (e.target.closest('.category-container')) return; // guard scroll horizontal
+    if (e.target.closest('.category-container')) return;
     if (localStorage.getItem("user_role") && navigator.onLine) {
       showSection('kelas');
     }
   });
 
   mc.on("swiperight", (e) => {
-    if (e.target.closest('.category-container')) return; // guard scroll horizontal
+    if (e.target.closest('.category-container')) return;
     if (localStorage.getItem("user_role")) {
       showSection('books');
     }
   });
 
-  // Enter key di login
   document.getElementById("usernameInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
   document.getElementById("passcodeInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
-
   document.getElementById("inputClassCode").addEventListener("keydown", (e) => {
     if (e.key === "Enter") joinClass();
   });
@@ -755,9 +781,29 @@ document.addEventListener("DOMContentLoaded", () => {
       if (bottomSheet.classList.contains("active")) closeSheet();
     });
   }
+
+  // Hemat baterai & kuota: pause polling saat tab tidak aktif
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (syncInterval)            { clearInterval(syncInterval);            }
+      if (window.pantuanInterval)  { clearInterval(window.pantuanInterval);  }
+    } else {
+      // Resume saat tab aktif kembali
+      if (document.getElementById("liveClassArea") &&
+          !document.getElementById("liveClassArea").classList.contains("hidden")) {
+        if (!syncInterval) syncInterval = setInterval(syncWithGuru, 3000);
+      }
+      const role = localStorage.getItem("user_role");
+      if ((role === "Guru" || role === "Developer") &&
+          document.getElementById("kelasSection") &&
+          !document.getElementById("kelasSection").classList.contains("hidden")) {
+        if (!window.pantuanInterval) window.pantuanInterval = setInterval(pantauJawaban, 3000);
+      }
+    }
+  });
 });
 
-window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('online',  updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 
 window.onload = () => {
