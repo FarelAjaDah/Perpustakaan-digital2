@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Pustaka Digital v5</title>
+  <title>Pustaka Digital V5</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
@@ -12,6 +12,7 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="script.js" defer></script>
+  <script src="js/pdf.min.js"></script>
 </head>
 
 <body data-theme="light">
@@ -206,6 +207,25 @@
       <button onclick="quickSwitch('Guru')"  class="btn-main" style="font-size: 12px; padding: 8px; margin-bottom: 5px; width: 100%;">Jadi Guru</button>
       <button onclick="quickSwitch('Murid')" class="btn-main" style="font-size: 12px; padding: 8px; width: 100%;">Jadi Murid</button>
       <button onclick="toggleFullScreen()"   class="btn-main" style="font-size: 12px; padding: 8px; margin-top: 5px; width: 100%; background: #475569;">⛶ Layar Penuh</button>
+    </div>
+  </div>
+
+  <!-- ============ PDF READER MODAL ============ -->
+  <div id="pdfReaderModal" class="hidden" style="position: fixed; inset: 0; background: var(--bg-body); z-index: 9999; display: flex; flex-direction: column;">
+    
+    <div style="background: var(--nav-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-top: calc(15px + var(--safe-top)); backdrop-filter: blur(16px);">
+      <button onclick="closePDFReader()" style="background: none; border: none; font-size: 20px; cursor: pointer;">❌</button>
+      <span id="pdfTitle" style="font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">Memuat Buku...</span>
+      <div style="width: 24px;"></div> </div>
+    
+    <div id="pdfScrollArea" style="flex: 1; overflow: auto; background: #e2e8f0; text-align: center; padding: 10px;">
+      <canvas id="pdf-canvas" style="max-width: 100%; box-shadow: var(--shadow-md); border-radius: 8px;"></canvas>
+    </div>
+    
+    <div style="background: var(--nav-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--glass-border); padding-bottom: calc(15px + var(--safe-bottom)); backdrop-filter: blur(16px);">
+      <button class="btn-main" onclick="onPrevPage()" style="width: auto; padding: 10px 20px; font-size: 13px;">⬅️ Prev</button>
+      <span style="font-weight: 800; font-size: 13px; color: var(--text-main);"><span id="page-num">1</span> / <span id="page-count">?</span></span>
+      <button class="btn-main" onclick="onNextPage()" style="width: auto; padding: 10px 20px; font-size: 13px;">Next ➡️</button>
     </div>
   </div>
 
