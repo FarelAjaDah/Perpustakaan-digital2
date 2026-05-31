@@ -70,13 +70,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Hemat baterai & kuota: pause polling saat tab tidak aktif
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-      if (syncInterval)            { clearInterval(syncInterval);            }
+      if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
       if (window.pantuanInterval)  { clearInterval(window.pantuanInterval);  }
     } else {
       // Resume saat tab aktif kembali
       if (document.getElementById("liveClassArea") &&
           !document.getElementById("liveClassArea").classList.contains("hidden")) {
-        if (!syncInterval) syncInterval = setInterval(syncWithGuru, 3000);
+        if (syncInterval === null) syncInterval = setInterval(syncWithGuru, 3000);
       }
       const role = localStorage.getItem("user_role");
       if ((role === "Guru" || role === "Developer") &&

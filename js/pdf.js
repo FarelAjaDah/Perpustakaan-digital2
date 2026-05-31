@@ -1,59 +1,83 @@
-
-let pdfDoc = null;
-let pageNum = 1;
-let pageIsRendering = false;
+let pdfDoc           = null;
+let pageNum          = 1;
+let pageIsRendering  = false;
 let pageNumIsPending = null;
-const scale = 1.5; // OPSI KALO MAU HD YE BANG BIAR GAK KAYAK BURIK AMAT 2.0
+const scale          = 1.5;
+
+const WORKER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 function bukaPDFNative(fileName, title) {
-  const url = `books/${fileName}`;
+  if (typeof pdfjsLib === 'undefined') {
+    showToast('⚠️ Library PDF belum siap, coba lagi sebentar.');
+    return;
+  }
+
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_CDN;
+  }
+
+  const url   = `books/${fileName}`;
   const modal = document.getElementById('pdfReaderModal');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf.worker.min.js';
-  
-  modal.classList.remove('hidden');
-  document.getElementById('pdfTitle').innerText = title || "Membaca Buku...";
-  document.getElementById('page-num').textContent = "1";
-  document.getElementById('page-count').textContent = "?";
+  if (!modal) return;
+
+  // FIX: gunakan display flex eksplisit, bukan class hidden saja
+  modal.style.display = 'flex';
+
+  document.getElementById('pdfTitle').innerText     = title || 'Membaca Buku...';
+  document.getElementById('page-num').textContent   = '1';
+  document.getElementById('page-count').textContent = '?';
 
   const canvas = document.getElementById('pdf-canvas');
-  const ctx = canvas.getContext('2d');
+  // FIX: tambah willReadFrequently:true — ini yang bikin lag hilang
+  const ctx    = canvas.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.font = "14px Arial";
-  ctx.fillText("Memproses Dokumen...", 10, 50);
-  
-  pdfjsLib.getDocument(url).promise.then(doc => {
-    pdfDoc = doc;
-    document.getElementById('page-count').textContent = doc.numPages;
-    pageNum = 1;
-    renderPage(pageNum);
-  }).catch(err => {
-    console.error(err);
-    showToast("⚠️ File gagal dimuat. Pastikan file PDF sudah terunduh.");
-    closePDFReader();
-  });
+  canvas.width  = 300;
+  canvas.height = 100;
+  ctx.font      = '14px Arial';
+  ctx.fillStyle = '#666';
+  ctx.fillText('Memuat halaman...', 20, 60);
+
+  pdfjsLib.getDocument(url).promise
+    .then((doc) => {
+      pdfDoc = doc;
+      document.getElementById('page-count').textContent = doc.numPages;
+      pageNum = 1;
+      renderPage(pageNum);
+    })
+    .catch((err) => {
+      console.error('PDF load error:', err);
+      showToast('⚠️ File gagal dimuat. Pastikan ada koneksi internet.');
+      closePDFReader();
+    });
 }
 
 function renderPage(num) {
+  if (!pdfDoc) return;
   pageIsRendering = true;
-  pdfDoc.getPage(num).then(page => {
-    const canvas = document.getElementById('pdf-canvas');
-    const ctx = canvas.getContext('2d');
-    const viewport = page.getViewport({ scale });
-    
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
 
-    const renderCtx = { canvasContext: ctx, viewport: viewport };
-    page.render(renderCtx).promise.then(() => {
+  pdfDoc.getPage(num).then((page) => {
+    const canvas   = document.getElementById('pdf-canvas');
+    // FIX: konsisten pakai willReadFrequently di semua getContext
+    const ctx      = canvas.getContext('2d', { willReadFrequently: true });
+    const viewport = page.getViewport({ scale });
+
+    canvas.height = viewport.height;
+    canvas.width  = viewport.width;
+
+    page.render({ canvasContext: ctx, viewport }).promise.then(() => {
       pageIsRendering = false;
       if (pageNumIsPending !== null) {
         renderPage(pageNumIsPending);
         pageNumIsPending = null;
       }
-      document.getElementById('pdfScrollArea').scrollTop = 0;
+      const scrollArea = document.getElementById('pdfScrollArea');
+      if (scrollArea) scrollArea.scrollTop = 0;
     });
-    
+
     document.getElementById('page-num').textContent = num;
+  }).catch((err) => {
+    pageIsRendering = false;
+    console.error('Render page error:', err);
   });
 }
 
@@ -66,18 +90,21 @@ function queueRenderPage(num) {
 }
 
 function onPrevPage() {
-  if (pageNum <= 1) return;
+  if (!pdfDoc || pageNum <= 1) return;
   pageNum--;
   queueRenderPage(pageNum);
 }
 
 function onNextPage() {
-  if (pageNum >= pdfDoc.numPages) return;
+  if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
   pageNum++;
   queueRenderPage(pageNum);
 }
 
 function closePDFReader() {
-  document.getElementById('pdfReaderModal').classList.add('hidden');
-  pdfDoc = null;
+  const modal = document.getElementById('pdfReaderModal');
+  if (modal) modal.style.display = 'none';
+  pdfDoc           = null;
+  pageIsRendering  = false;
+  pageNumIsPending = null;
 }

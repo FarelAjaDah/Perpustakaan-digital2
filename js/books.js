@@ -50,16 +50,26 @@ function renderBooks(kw) {
     return;
   }
 
-  list.innerHTML = filtered.map((b, index) => `
-    <div class="book-card animate" style="animation-delay: ${index * 0.05}s"
+  // Warna badge per kategori
+  const catColor = {
+    Pelajaran: { bg:'#dbeafe', text:'#1d4ed8' },
+    Komik:     { bg:'#fee2e2', text:'#b91c1c' },
+    Novel:     { bg:'#d1fae5', text:'#065f46' },
+    Ujian:     { bg:'#fef3c7', text:'#92400e' },
+    Latihan:   { bg:'#ede9fe', text:'#5b21b6' },
+    Jurnal:    { bg:'#e0f2fe', text:'#075985' },
+  };
+
+  list.innerHTML = filtered.map((b, index) => {
+    const cc = catColor[b.category] || { bg:'#f3f4f6', text:'#374151' };
+    return `
+    <div class="book-card animate" style="animation-delay:${index * 0.04}s; --card-color:${b.color};"
          onclick="openBookDetails('${b.title.replace(/'/g, "\\'")}', '${b.file}', '${b.emoji}', '${b.color}')">
-      <div class="book-cover" style="background: ${b.color}20; color: ${b.color};">${b.emoji}</div>
-      <div style="font-weight: 800; font-size: 14px; color: var(--text-main); line-height: 1.3;">${b.title}</div>
-      <div style="font-size: 10px; color: var(--accent); font-weight: 700; margin-top: 6px; opacity: 0.8;">
-        ${b.category.toUpperCase()}
-      </div>
-    </div>
-  `).join('');
+      <div class="book-cover" style="background:${b.color}20; color:${b.color};">${b.emoji}</div>
+      <div class="book-title">${b.title}</div>
+      <span class="book-cat" style="background:${cc.bg}; color:${cc.text};">${b.category}</span>
+    </div>`;
+  }).join('');
 }
 
 function setCategory(cat) {
@@ -80,7 +90,7 @@ function renderLastRead() {
 
   if (lastReadData) {
     try {
-      const book = JSON.parse(lastReadData);
+      const book = JSON.parse(lastReadData);  
       container.classList.remove("hidden");
       cardPlace.innerHTML = `
         <div onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '${book.color || ''}')"

@@ -7,6 +7,7 @@ function setupKelasUI() {
 
   if (isGuru) {
     populateSelectBuku();
+    populateSelectQuizFile();
 
     if (window.pantuanInterval) clearInterval(window.pantuanInterval);
     window.pantuanInterval = setInterval(pantauJawaban, 3000);
@@ -24,6 +25,14 @@ function populateSelectBuku() {
   if (!select) return;
   const pelajaran = books.filter(b => b.category === "Pelajaran");
   select.innerHTML = pelajaran.map(b =>
+    `<option value="${b.file}">${b.emoji} ${b.title}</option>`
+  ).join('');
+}
+
+function populateSelectQuizFile() {
+  const select = document.getElementById("selectQuizFile");
+  if (!select) return;
+  select.innerHTML = books.map(b =>
     `<option value="${b.file}">${b.emoji} ${b.title}</option>`
   ).join('');
 }
