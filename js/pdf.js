@@ -20,7 +20,6 @@ function bukaPDFNative(fileName, title) {
   const modal = document.getElementById('pdfReaderModal');
   if (!modal) return;
 
-  // FIX: gunakan display flex eksplisit, bukan class hidden saja
   modal.style.display = 'flex';
 
   document.getElementById('pdfTitle').innerText     = title || 'Membaca Buku...';
@@ -57,7 +56,6 @@ function renderPage(num) {
 
   pdfDoc.getPage(num).then((page) => {
     const canvas   = document.getElementById('pdf-canvas');
-    // FIX: konsisten pakai willReadFrequently di semua getContext
     const ctx      = canvas.getContext('2d', { willReadFrequently: true });
     const viewport = page.getViewport({ scale });
 
