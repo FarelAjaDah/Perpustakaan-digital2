@@ -1,12 +1,9 @@
-const CACHE_NAME = 'pustaka-furina-V4'; // jangan lupa diganti ya mas 🥰
+const CACHE_NAME = 'pustaka-furina-V5'; // JANGAN LUPA AHHHH
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
-  './script.js',
   './manifest.json',
-  './js/pdf.min.js',
-  './js/pdf.worker.min.js',
 ];
 
 // Install & Precaching file inti
@@ -14,9 +11,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return Promise.allSettled(
-  ASSETS_TO_CACHE.map(asset => cache.add(asset))) 
+        ASSETS_TO_CACHE.map(asset => cache.add(asset))
+      );
     })
-  );  
+  );
   self.skipWaiting();
 });
 
@@ -25,9 +23,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
+          if (cache !== CACHE_NAME) return caches.delete(cache);
         })
       );
     }).then(() => self.clients.claim())
@@ -36,26 +32,31 @@ self.addEventListener('activate', (event) => {
 
 // Cache First, then Network
 self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('firebasedatabase') || event.request.url.includes('google')) {
-    return;
-  }
+  const url = event.request.url;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+
+  // Skip Firebase & Google (harus selalu fresh dari network)
+  if (url.includes('firebasedatabase') || url.includes('googleapis')) return;
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
 
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          if (event.request.url.includes('.pdf')) {
-            return saveToCache(event.request, networkResponse);
-          }
-          return networkResponse;
+        // Hanya cache response yang valid (status 200, tipe basic/cors)
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          (networkResponse.type === 'basic' || networkResponse.type === 'cors')
+        ) {
+          return saveToCache(event.request, networkResponse);
         }
-        return saveToCache(event.request, networkResponse);
+        return networkResponse;
       }).catch(() => {
-        console.log("Offline: File tidak ditemukan");
+        // Offline fallback: kembalikan index.html untuk navigasi
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
       });
     })
   );
@@ -69,4 +70,4 @@ function saveToCache(request, response) {
   return response;
 }
 
-// Last updated:24 mei 2026 - 02:03 AM (GMT +7)
+// Last updated: 31 Mei 2026
