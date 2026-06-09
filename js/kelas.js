@@ -15,7 +15,10 @@ function setupKelasUI() {
 
     // Reset interval agar tidak double
     if (window.pantuanInterval) clearInterval(window.pantuanInterval);
-    window.pantuanInterval = setInterval(pantauJawaban, 3000);
+    window.pantuanInterval = setInterval(() => {
+      pantauJawaban();
+      pantauPresence();   // ← tambah pantau murid
+    }, 3000);
 
     // Buat kode otomatis hanya jika belum ada
     const existingCode = document.getElementById("activeCode").innerText;
@@ -91,6 +94,9 @@ function updateClassStatus(status, content = "", onDone = null) {
       if (window.pantuanInterval) clearInterval(window.pantuanInterval);
       const jawabanList = document.getElementById("listJawabanMurid");
       if (jawabanList) jawabanList.innerHTML = `<p style="font-size:12px; color:var(--text-soft); text-align:center; padding:10px;">Sesi berakhir.</p>`;
+      // Reset indikator murid
+      const indicator = document.getElementById("muridCountIndicator");
+      if (indicator) indicator.innerHTML = `<span class="presence-badge">👥 0 murid terhubung</span>`;
       if (onDone) onDone();
     })
     .catch(() => { showToast("❌ Gagal menghubungi server."); if (onDone) onDone(); });
@@ -191,6 +197,78 @@ function pantauJawaban() {
 }
 
 // =============================================
+//  PRESENCE SYSTEM — Indikator murid terhubung
+// =============================================
+let presenceInterval  = null;
+let currentClassCode  = null;
+let currentMuridKey   = null;
+
+// Murid daftarkan diri ke Firebase saat join
+function registerPresence(code, nama) {
+  const safeKey    = String(nama).replace(/[.#$/[\]\s]/g, '_');
+  currentMuridKey  = `${safeKey}_${Date.now()}`;
+  currentClassCode = code;
+
+  const URL_PRESENCE = `${FIREBASE_BASE}/presence/${code}/${currentMuridKey}.json`;
+
+  function sendHeartbeat() {
+    if (!navigator.onLine) return;
+    fetch(URL_PRESENCE, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama: String(nama), aktif: Date.now() })
+    }).catch(() => {});
+  }
+
+  // Kirim sekali langsung, lalu setiap 5 detik
+  sendHeartbeat();
+  if (presenceInterval) clearInterval(presenceInterval);
+  presenceInterval = setInterval(sendHeartbeat, 5000);
+}
+
+// Hapus presence saat murid keluar kelas
+function unregisterPresence() {
+  if (presenceInterval) { clearInterval(presenceInterval); presenceInterval = null; }
+  if (!currentClassCode || !currentMuridKey) return;
+
+  fetch(`${FIREBASE_BASE}/presence/${currentClassCode}/${currentMuridKey}.json`, {
+    method: 'DELETE'
+  }).catch(() => {});
+
+  currentClassCode = null;
+  currentMuridKey  = null;
+}
+
+// Guru pantau berapa murid aktif (heartbeat < 15 detik)
+function pantauPresence() {
+  const codeEl = document.getElementById("activeCode");
+  const code   = codeEl ? codeEl.innerText.trim() : "";
+  if (!code || code === "-----") return;
+
+  fetch(`${FIREBASE_BASE}/presence/${code}.json`)
+    .then(res => res.json())
+    .then(data => {
+      const indicator = document.getElementById("muridCountIndicator");
+      if (!indicator) return;
+
+      if (!data) {
+        indicator.innerHTML = `<span class="presence-badge">👥 0 murid terhubung</span>`;
+        return;
+      }
+
+      // Hitung murid yang heartbeat-nya masih fresh (< 15 detik)
+      const now    = Date.now();
+      const aktif  = Object.values(data).filter(m => (now - m.aktif) < 15000);
+      const jumlah = aktif.length;
+
+      indicator.innerHTML = jumlah > 0
+        ? `<span class="presence-badge active">🟢 ${jumlah} murid terhubung</span>`
+        : `<span class="presence-badge">👥 0 murid terhubung</span>`;
+    })
+    .catch(() => {});
+}
+
+// =============================================
 //  MURID — BERGABUNG KE KELAS
 // =============================================
 function joinClass() {
@@ -210,6 +288,11 @@ function joinClass() {
         lastSyncStatus = "";
         document.getElementById("joinArea").classList.add("hidden");
         document.getElementById("liveClassArea").classList.remove("hidden");
+
+        // Daftarkan presence murid
+        const nama = localStorage.getItem("user_name") || "Murid";
+        registerPresence(input, nama);
+
         // Langsung sync sekali sebelum interval
         syncWithGuru();
         syncInterval = setInterval(syncWithGuru, 3000);
@@ -320,7 +403,6 @@ function kirimJawabanKeGuru(code, nama) {
     kirimBtn.disabled  = true;
   }
 
-  // Key aman untuk Firebase (tidak boleh ada karakter tertentu)
   const safeKey   = String(nama).replace(/[.#$/[\]\s]/g, '_');
   const uniqueKey = `${safeKey}_${Date.now()}`;
   const URL_JAWABAN = `${FIREBASE_BASE}/answers/${code}/${uniqueKey}.json`;
@@ -360,6 +442,9 @@ function handleSesiBerakhir() {
   lastStatus     = "";
   lastSyncStatus = "";
 
+  // Hapus presence murid saat sesi berakhir
+  unregisterPresence();
+
   const statusEl  = document.getElementById("currentStatus");
   const contentEl = document.getElementById("classContent");
   const resetArea = document.getElementById("resetMuridArea");
@@ -387,6 +472,10 @@ function showInputKodeKelas() {
 function resetTampilanMurid() {
   document.getElementById("resetMuridArea").classList.add("hidden");
   if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
+
+  // Hapus presence saat murid keluar manual
+  unregisterPresence();
+
   showInputKodeKelas();
   showToast("Silakan masuk ke kelas baru.");
 }
