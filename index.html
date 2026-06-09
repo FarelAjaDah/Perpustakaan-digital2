@@ -63,7 +63,7 @@
     </button>
 
     <p style="font-size:11px; margin-top:22px; color:var(--text-2); text-align:center; font-weight:600;">
-      Pustaka Digital v7.2
+      Pustaka Digital v6.0
     </p>
   </div>
 </div>
@@ -79,18 +79,18 @@
 
       <div class="top-bar">
         <span id="roleBadge" class="role-badge">Memuat...</span>
-        <button onclick="toggleTheme()" class="theme-btn" aria-label="Ganti tema">🌓</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button onclick="cekStatusOffline()" aria-label="Cek status offline"
+            style="font-size:11px; padding:5px 11px; border-radius:20px;
+                   border:1px solid var(--border); background:var(--surface-2);
+                   color:var(--text-2); cursor:pointer; font-family:inherit; font-weight:700;
+                   white-space:nowrap;">📡 Cek status buku</button>
+          <button onclick="toggleTheme()" class="theme-btn" aria-label="Ganti tema">🌓</button>
+        </div>
       </div>
 
       <div id="connectionStatus">Memeriksa koneksi...</div>
-
-      <h2 id="welcomeText">Halo! 👋</h2>
-      <button onclick="cekStatusOffline()" 
-      style="font-size:12px; padding:6px 14px; border-radius:20px; 
-         border:1px solid var(--border); background:var(--surface-2); 
-         color:var(--text-2); cursor:pointer; font-family:inherit;">
-  📡 Cek Status Offline
-  </button>
+      <h2 id="welcomeText" style="margin-bottom:14px;">Halo! 👋</h2>
 
       <!-- Search & filter — hanya di tab Koleksi -->
       <div id="searchArea">
@@ -135,21 +135,55 @@
 
         <!-- TAMPILAN GURU -->
         <div id="guruView" class="hidden">
-          <h3 style="font-size:17px; font-weight:800; margin-bottom:18px;">🧑‍🏫 Panel Guru</h3>
+          <h3 style="font-size:17px; font-weight:800; margin-bottom:16px;">🧑‍🏫 Panel Guru</h3>
 
-          <!-- Bagikan PDF ke murid -->
+          <!-- Presentasi PDF -->
           <div class="section-block">
-            <p class="section-label">📺 Presentasi PDF</p>
+            <p class="section-label">📺 Presentasi Live</p>
             <select id="selectFileBuku" class="input-main" style="margin-bottom:10px;"></select>
             <button id="btnMulaiPresentasi" onclick="mulaiPresentasiPDF()" class="btn-main"
-              style="background:#10b981;">🚀 Bagikan ke Murid</button>
+              style="background:#10b981;">🚀 Mulai Presentasi</button>
+          </div>
+
+          <!-- Panel kontrol presentasi live (muncul setelah mulai) -->
+          <div id="guruPresentasiPanel" class="hidden">
+            <div class="section-block" style="padding:0; overflow:hidden;">
+              <div style="padding:12px 14px; background:var(--green); border-radius:var(--r-md) var(--r-md) 0 0;
+                          display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; color:white; letter-spacing:0.5px;">📺 SEDANG LIVE</span>
+                <button onclick="tutupGuruPresentasi()"
+                  style="background:rgba(255,255,255,0.2); color:white; border:none;
+                         padding:4px 10px; border-radius:8px; font-size:11px; font-weight:800;
+                         cursor:pointer; font-family:inherit;">✕ Akhiri</button>
+              </div>
+              <p id="guruPresentasiTitle" style="font-size:11px; color:var(--text-2); padding:8px 14px 0;
+                 font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></p>
+              <div style="position:relative; background:#c8d0c8; min-height:200px; text-align:center; padding:10px;">
+                <div id="guruCanvasLoading" style="position:absolute; inset:0; background:#c8d0c8;
+                     display:flex; align-items:center; justify-content:center;">
+                  <div class="loading-spinner"></div>
+                </div>
+                <canvas id="guruLiveCanvas" style="max-width:100%; border-radius:6px;
+                         box-shadow:0 2px 10px rgba(0,0,0,0.15);"></canvas>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between;
+                          padding:10px 12px; gap:8px; border-top:1px solid var(--border);">
+                <button onclick="guruPrevPage()" class="btn-main"
+                  style="flex:1; max-width:100px; padding:10px 8px; font-size:13px;">⬅ Prev</button>
+                <span style="font-size:13px; font-weight:800; color:var(--text-2);">
+                  <span id="guruPageNum">1</span> / <span id="guruPageCount">?</span>
+                </span>
+                <button onclick="guruNextPage()" class="btn-main"
+                  style="flex:1; max-width:100px; padding:10px 8px; font-size:13px;">Next ➡</button>
+              </div>
+            </div>
           </div>
 
           <!-- Kuis Teks -->
           <div class="section-block">
             <p class="section-label">✍️ Kuis Teks</p>
             <textarea id="quizText" class="input-main" placeholder="Ketik soal kuis di sini..."
-              style="height:80px; resize:none; margin-bottom:10px;"></textarea>
+              style="height:72px; resize:none; margin-bottom:10px;"></textarea>
             <button id="btnMulaiQuiz" class="btn-main" onclick="mulaiQuiz()"
               style="background:#ef4444;">📤 Kirim Soal</button>
           </div>
@@ -164,7 +198,7 @@
 
           <!-- Kode kelas & QR -->
           <div class="section-block" style="text-align:center;">
-            <p class="section-label">🔑 Kode Kelas Aktif</p>
+            <p class="section-label">🔑 Kode Kelas</p>
             <div id="activeCode">-----</div>
             <button onclick="refreshKodeKelas()"
               style="font-size:12px; background:var(--green); color:white; border:none;
@@ -176,8 +210,8 @@
                                     width:fit-content; border-radius:12px;"></div>
           </div>
 
-          <div id="muridCountIndicator" style="margin-top: 8px;">
-          <span class="presence-badge">👥 0 murid terhubung</span>
+          <div id="muridCountIndicator" style="margin-bottom:12px;">
+            <span class="presence-badge">👥 0 murid terhubung</span>
           </div>
 
           <!-- Monitor jawaban -->
@@ -229,8 +263,8 @@
               <p id="currentStatus">⏳ MENUNGGU GURU...</p>
             </div>
             <div id="classContent"
-              style="min-height:200px; border:2px dashed var(--border); border-radius:var(--r-lg);
-                     overflow:hidden; background:var(--surface-2);">
+              style="min-height:280px; border:2px dashed var(--border); border-radius:var(--r-lg);
+                     overflow:hidden; background:var(--surface-2); position:relative;">
               <p style="padding:28px; color:var(--text-2); text-align:center;">
                 Menunggu konten dari guru...
               </p>
