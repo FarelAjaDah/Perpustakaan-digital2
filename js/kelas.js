@@ -1,3 +1,7 @@
+// =============================================
+//  KELAS — Pustaka Digital
+// =============================================
+
 function setupKelasUI() {
   const role   = localStorage.getItem("user_role");
   const isGuru = role === "Guru" || role === "Developer";
@@ -9,10 +13,13 @@ function setupKelasUI() {
     populateSelectBuku();
     populateSelectQuizFile();
 
+    // Reset interval agar tidak double
     if (window.pantuanInterval) clearInterval(window.pantuanInterval);
     window.pantuanInterval = setInterval(pantauJawaban, 3000);
 
-    if (document.getElementById("activeCode").innerText === "-----") {
+    // Buat kode otomatis hanya jika belum ada
+    const existingCode = document.getElementById("activeCode").innerText;
+    if (!existingCode || existingCode === "-----") {
       const kode = generateKode();
       document.getElementById("activeCode").innerText = kode;
       generateQR(kode);
@@ -24,16 +31,25 @@ function populateSelectBuku() {
   const select = document.getElementById("selectFileBuku");
   if (!select) return;
   const pelajaran = books.filter(b => b.category === "Pelajaran");
+  if (pelajaran.length === 0) {
+    select.innerHTML = `<option value="">— Tidak ada buku pelajaran —</option>`;
+    return;
+  }
   select.innerHTML = pelajaran.map(b =>
-    `<option value="${b.file}">${b.emoji} ${b.title}</option>`
+    `<option value="${esc(b.file)}">${b.emoji} ${esc(b.title)}</option>`
   ).join('');
 }
 
 function populateSelectQuizFile() {
   const select = document.getElementById("selectQuizFile");
   if (!select) return;
-  select.innerHTML = books.map(b =>
-    `<option value="${b.file}">${b.emoji} ${b.title}</option>`
+  const soal = books.filter(b => b.category === "Latihan" || b.category === "Ujian");
+  if (soal.length === 0) {
+    select.innerHTML = `<option value="">— Belum ada soal tersedia —</option>`;
+    return;
+  }
+  select.innerHTML = soal.map(b =>
+    `<option value="${esc(b.file)}">${b.emoji} ${esc(b.title)}</option>`
   ).join('');
 }
 
@@ -48,49 +64,57 @@ function refreshKodeKelas() {
   showToast("Kode kelas diperbarui! 🔑");
 }
 
-
 // =============================================
-//  RUANG KELAS - GURU
+//  GURU — UPDATE STATUS KELAS
 // =============================================
 function updateClassStatus(status, content = "", onDone = null) {
   const codeElement = document.getElementById("activeCode");
-  let currentCode   = codeElement.innerText.trim();
+  let currentCode   = codeElement ? codeElement.innerText.trim() : "";
 
-  if ((status === "Presentasi" || status === "Kuis") && (currentCode === "-----" || !currentCode)) {
+  if ((status === "Presentasi" || status === "Kuis") && (!currentCode || currentCode === "-----")) {
     currentCode = generateKode();
-    codeElement.innerText = currentCode;
+    if (codeElement) codeElement.innerText = currentCode;
     generateQR(currentCode);
   }
 
   if (status === "Selesai") {
-    fetch(FIREBASE_URL, {
+    fetchWithTimeout(FIREBASE_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: "Selesai", content: "", code: "-----", file: "" })
-    }).then(() => {
-      codeElement.innerText = "-----";
-      document.getElementById("qrcode").innerHTML = "";
+    })
+    .then(() => {
+      if (codeElement) codeElement.innerText = "-----";
+      const qrEl = document.getElementById("qrcode");
+      if (qrEl) qrEl.innerHTML = "";
       showToast("Sesi berhasil diakhiri! 👋");
       if (window.pantuanInterval) clearInterval(window.pantuanInterval);
-      document.getElementById("listJawabanMurid").innerHTML = `<p style="font-size:12px; color:var(--text-soft);">Sesi berakhir.</p>`;
+      const jawabanList = document.getElementById("listJawabanMurid");
+      if (jawabanList) jawabanList.innerHTML = `<p style="font-size:12px; color:var(--text-soft); text-align:center; padding:10px;">Sesi berakhir.</p>`;
       if (onDone) onDone();
-    }).catch(() => { showToast("❌ Gagal menghubungi server."); if (onDone) onDone(); });
+    })
+    .catch(() => { showToast("❌ Gagal menghubungi server."); if (onDone) onDone(); });
     return;
   }
 
-  fetch(FIREBASE_URL, {
+  const payload = {
+    status,
+    content: status === "Kuis" ? content : "",
+    code: currentCode,
+    file: status === "Presentasi" ? content : ""
+  };
+
+  fetchWithTimeout(FIREBASE_URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      status,
-      content: status === "Kuis" ? content : "",
-      code: currentCode,
-      file: status === "Presentasi" ? content : ""
-    })
-  }).then(res => {
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
     if (res.ok) showToast(`Mode ${status} aktif! 🚀`);
+    else showToast("⚠️ Respons server tidak normal.");
     if (onDone) onDone();
-  }).catch(() => { showToast("❌ Gagal menyambung ke server."); if (onDone) onDone(); });
+  })
+  .catch(() => { showToast("❌ Gagal menyambung ke server."); if (onDone) onDone(); });
 }
 
 function setButtonLoading(btn, loadingText) {
@@ -108,7 +132,9 @@ function resetButton(btn, originalText) {
 }
 
 function mulaiPresentasiPDF() {
-  const file = document.getElementById("selectFileBuku").value;
+  const select = document.getElementById("selectFileBuku");
+  const file = select ? select.value : "";
+  if (!file) return showToast("Pilih buku dulu!");
   const btn  = document.getElementById("btnMulaiPresentasi");
   const orig = setButtonLoading(btn, "Membagikan...");
   updateClassStatus("Presentasi", file, () => resetButton(btn, orig));
@@ -123,7 +149,8 @@ function mulaiQuiz() {
 }
 
 function mulaiQuizFile() {
-  const file = document.getElementById("selectQuizFile").value;
+  const select = document.getElementById("selectQuizFile");
+  const file = select ? select.value : "";
   if (!file) return showToast("Pilih file kuis dulu!");
   const contentPayload = JSON.stringify({ tipe: "pdf", namaFile: file });
   const btn  = document.getElementById("btnMulaiQuizFile");
@@ -132,49 +159,59 @@ function mulaiQuizFile() {
 }
 
 function pantauJawaban() {
-  const code = document.getElementById("activeCode").innerText;
-  if (code === "-----" || !code) return;
+  const codeEl = document.getElementById("activeCode");
+  const code   = codeEl ? codeEl.innerText.trim() : "";
+  if (!code || code === "-----") return;
+
   fetch(`${FIREBASE_BASE}/answers/${code}.json`)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error("Network error");
+      return res.json();
+    })
     .then(data => {
       const container = document.getElementById("listJawabanMurid");
-      if (!data) {
+      if (!container) return;
+
+      if (!data || Object.keys(data).length === 0) {
         container.innerHTML = `<p style="font-size:12px; opacity:0.5; text-align:center; padding:10px;">Menunggu jawaban murid...</p>`;
         return;
       }
+
       container.innerHTML = Object.keys(data).map(key => `
         <div class="answer-bubble animate">
           <div class="answer-header">
             <span class="student-name">👤 ${esc(data[key].nama)}</span>
             <span style="color:var(--text-soft);">${esc(data[key].waktu || '')}</span>
           </div>
-          <div style="font-size:13px;">${esc(data[key].jawaban)}</div>
+          <div style="font-size:13px; word-break:break-word;">${esc(data[key].jawaban)}</div>
         </div>
       `).join('');
     })
     .catch(() => { /* silent fail saat offline */ });
 }
 
-
 // =============================================
-//  RUANG KELAS - MURID
+//  MURID — BERGABUNG KE KELAS
 // =============================================
 function joinClass() {
-  const input = document.getElementById("inputClassCode").value.trim().toUpperCase();
+  const inputEl = document.getElementById("inputClassCode");
+  const input   = inputEl ? inputEl.value.trim().toUpperCase() : "";
   if (!input) return showToast("Masukkan kode kelas dulu!");
 
   const btn          = document.querySelector("#joinArea .btn-main");
   const originalText = btn ? btn.innerHTML : null;
   if (btn) { btn.innerHTML = `<span class="btn-spinner"></span> Menyambungkan...`; btn.disabled = true; }
 
-  fetch(FIREBASE_URL)
+  fetchWithTimeout(FIREBASE_URL, {}, 8000)
     .then(res => res.json())
     .then(data => {
       if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
       if (data && input === data.code) {
-        lastSyncStatus = ""; // reset agar konten terbaru selalu dirender saat baru masuk
+        lastSyncStatus = "";
         document.getElementById("joinArea").classList.add("hidden");
         document.getElementById("liveClassArea").classList.remove("hidden");
+        // Langsung sync sekali sebelum interval
+        syncWithGuru();
         syncInterval = setInterval(syncWithGuru, 3000);
         showToast("Berhasil masuk kelas! 🎉");
       } else {
@@ -189,7 +226,10 @@ function joinClass() {
 
 function syncWithGuru() {
   fetch(FIREBASE_URL)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error("Network error");
+      return res.json();
+    })
     .then(data => {
       if (!data || data.status === "Selesai") {
         handleSesiBerakhir();
@@ -198,7 +238,9 @@ function syncWithGuru() {
 
       const container  = document.getElementById("classContent");
       const statusText = document.getElementById("currentStatus");
+      if (!container || !statusText) return;
 
+      // Toast hanya saat status berubah
       if (data.status !== lastStatus) {
         showToast(`Status: ${data.status}`);
         lastStatus = data.status;
@@ -206,37 +248,50 @@ function syncWithGuru() {
 
       if (data.status === "Presentasi") {
         statusText.innerText = "📺 GURU SEDANG PRESENTASI";
-        if (data.status !== lastSyncStatus || container.querySelector('iframe')?.src !== `${location.origin}/books/${data.file}`) {
-          container.innerHTML = `<iframe src="books/${data.file}" width="100%" height="420px" class="iframe" style="border:none;"></iframe>`;
-          lastSyncStatus = data.status + data.file;
+        const newKey = data.status + (data.file || "");
+        if (newKey !== lastSyncStatus) {
+          container.innerHTML = `<iframe src="books/${esc(data.file)}" width="100%" height="420px" class="iframe" style="border:none;"></iframe>`;
+          lastSyncStatus = newKey;
         }
 
       } else if (data.status === "Kuis") {
         statusText.innerText = "📝 KUIS SEDANG BERLANGSUNG";
+
         let parsedContent = data.content;
         if (typeof data.content === 'string') {
-          try { parsedContent = JSON.parse(data.content); } catch (e) { parsedContent = data.content; }
+          try { parsedContent = JSON.parse(data.content); } catch (e) { /* bukan JSON */ }
         }
 
-        const isPdf        = parsedContent && typeof parsedContent === 'object' && parsedContent.tipe === "pdf";
-        const contentKey   = data.status + (isPdf ? parsedContent.namaFile : data.content);
+        const isPdf      = parsedContent && typeof parsedContent === 'object' && parsedContent.tipe === "pdf";
+        const contentKey = data.status + (isPdf ? parsedContent.namaFile : data.content);
         if (contentKey === lastSyncStatus) return;
         lastSyncStatus = contentKey;
+
+        const userName = esc(localStorage.getItem("user_name") || "Murid");
+        const safeCode = esc(data.code || "");
 
         if (isPdf) {
           container.innerHTML = `
             <div style="padding:16px;" class="animate">
-              <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">📄 Kuis dari File PDF:</p>
-              <iframe src="books/${parsedContent.namaFile}" width="100%" height="300px" style="border:none; border-radius:12px;"></iframe>
-              <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu di sini..." style="width:100%; height:80px; margin-top:12px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
-              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
+              <p style="font-weight:700; margin-bottom:12px; color:var(--text);">📄 Kuis dari File PDF:</p>
+              <iframe src="books/${esc(parsedContent.namaFile)}" width="100%" height="300px" style="border:none; border-radius:12px;"></iframe>
+              <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu di sini..." 
+                style="width:100%; height:80px; margin-top:12px; padding:12px; border-radius:12px; 
+                       border:1px solid var(--glass-border); font-family:inherit; 
+                       background:var(--input-bg); color:var(--text); resize:none;"></textarea>
+              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" 
+                onclick="kirimJawabanKeGuru('${safeCode}', '${userName}')">Kirim Jawaban ✉️</button>
             </div>`;
         } else {
           container.innerHTML = `
             <div style="padding:20px; text-align:left;" class="animate">
-              <p style="font-weight:700; margin-bottom:12px; color:var(--text-main);">❓ Soal: ${esc(data.content)}</p>
-              <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." style="width:100%; height:100px; padding:12px; border-radius:12px; border:1px solid var(--glass-border); font-family:inherit; background:var(--input-bg); color:var(--text-main);"></textarea>
-              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" onclick="kirimJawabanKeGuru('${data.code}', '${localStorage.getItem("user_name")}')">Kirim Jawaban ✉️</button>
+              <p style="font-weight:700; margin-bottom:12px; color:var(--text);">❓ Soal: ${esc(data.content)}</p>
+              <textarea id="jawabanMuridText" placeholder="Ketik jawabanmu..." 
+                style="width:100%; height:100px; padding:12px; border-radius:12px; 
+                       border:1px solid var(--glass-border); font-family:inherit; 
+                       background:var(--input-bg); color:var(--text); resize:none;"></textarea>
+              <button id="btnKirimJawaban" class="btn-main" style="margin-top:10px; background:var(--accent);" 
+                onclick="kirimJawabanKeGuru('${safeCode}', '${userName}')">Kirim Jawaban ✉️</button>
             </div>`;
         }
 
@@ -264,15 +319,22 @@ function kirimJawabanKeGuru(code, nama) {
     kirimBtn.innerHTML = '<span class="btn-spinner"></span> Mengirim...';
     kirimBtn.disabled  = true;
   }
-  const safeKey     = nama.replace(/[.#$/[\]\s]/g, '_');
-  const uniqueKey   = `${safeKey}_${Date.now()}`;
+
+  // Key aman untuk Firebase (tidak boleh ada karakter tertentu)
+  const safeKey   = String(nama).replace(/[.#$/[\]\s]/g, '_');
+  const uniqueKey = `${safeKey}_${Date.now()}`;
   const URL_JAWABAN = `${FIREBASE_BASE}/answers/${code}/${uniqueKey}.json`;
 
-  fetch(URL_JAWABAN, {
+  fetchWithTimeout(URL_JAWABAN, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nama, jawaban: isiJawaban, waktu: new Date().toLocaleTimeString() })
-  }).then(res => {
+    body: JSON.stringify({
+      nama:    String(nama),
+      jawaban: isiJawaban,
+      waktu:   new Date().toLocaleTimeString('id-ID')
+    })
+  })
+  .then(res => {
     if (res.ok) {
       showToast("Jawaban terkirim! ✅");
       const input = document.getElementById("jawabanMuridText");
@@ -286,7 +348,8 @@ function kirimJawabanKeGuru(code, nama) {
       showToast("❌ Gagal kirim. Coba lagi.");
       if (kirimBtn) { kirimBtn.innerHTML = originalText; kirimBtn.disabled = false; }
     }
-  }).catch(() => {
+  })
+  .catch(() => {
     showToast("❌ Tidak ada koneksi.");
     if (kirimBtn) { kirimBtn.innerHTML = originalText; kirimBtn.disabled = false; }
   });
@@ -297,21 +360,26 @@ function handleSesiBerakhir() {
   lastStatus     = "";
   lastSyncStatus = "";
 
-  document.getElementById("currentStatus").innerText = "✅ SESI TELAH BERAKHIR";
-  document.getElementById("classContent").innerHTML = `
+  const statusEl  = document.getElementById("currentStatus");
+  const contentEl = document.getElementById("classContent");
+  const resetArea = document.getElementById("resetMuridArea");
+
+  if (statusEl)  statusEl.innerText = "✅ SESI TELAH BERAKHIR";
+  if (contentEl) contentEl.innerHTML = `
     <div style="padding:40px; text-align:center;">
       <p style="font-size:32px; margin-bottom:12px;">🎓</p>
       <p style="margin-bottom:20px; color:var(--text-soft);">Guru telah mengakhiri sesi ini.</p>
-      <button onclick="location.reload()" class="btn-main" style="max-width:200px; margin:0 auto;">Keluar Kelas</button>
+      <button onclick="resetTampilanMurid()" class="btn-main" style="max-width:200px; margin:0 auto;">Keluar Kelas</button>
     </div>`;
-  document.getElementById("resetMuridArea").classList.remove("hidden");
+  if (resetArea) resetArea.classList.remove("hidden");
   showToast("Sesi belajar telah selesai! 👋");
 }
 
 function showInputKodeKelas() {
   document.getElementById("joinArea").classList.remove("hidden");
   document.getElementById("liveClassArea").classList.add("hidden");
-  document.getElementById("inputClassCode").value = "";
+  const inputEl = document.getElementById("inputClassCode");
+  if (inputEl) inputEl.value = "";
   lastStatus     = "";
   lastSyncStatus = "";
 }
