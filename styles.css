@@ -1,7 +1,5 @@
 /* ==============================================
    PUSTAKA DIGITAL — styles.css
-   Redesigned: lebih bersih, hangat, mudah dibaca
-   untuk guru SD–SMA dan murid
    ============================================== */
 
 /* --- TOKENS --- */
@@ -649,4 +647,20 @@ main.container > div { min-height: 60vh; }
 @media (prefers-reduced-motion: reduce) {
   .animate, .btn-spinner, #currentStatus { animation: none !important; }
   * { transition-duration: 0.01ms !important; }
+}
+
+/* ==============================================
+   PRESENCE BADGE
+   ============================================== */
+.presence-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.presence-badge.active {
+  background: #dcfce7;
+  color: #15803d;
 }
