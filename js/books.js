@@ -1,138 +1,182 @@
+// =============================================
+//  DATA BUKU 
+// =============================================
 const books = [
-  { title: "Matematika",           file: "matematika.pdf",    emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
-  { title: "Sejarah",              file: "sejarah.pdf",       emoji: "📜", color: "#f59e0b", category: "Pelajaran" },
-  { title: "Biologi",              file: "biologi.pdf",       emoji: "🧬", color: "#10b981", category: "Pelajaran" },
-  { title: "Bahasa Jepang",        file: "jp.pdf",            emoji: "🗾", color: "#ef4444", category: "Pelajaran" },
-  { title: "Fisika",               file: "fisika.pdf",        emoji: "🔬", color: "#6366f1", category: "Pelajaran" },
-  { title: "Kimia",                file: "kimia.pdf",         emoji: "⚗️", color: "#f97316", category: "Pelajaran" },
-  { title: "One Piece",            file: "op.pdf",            emoji: "🏴‍☠️", color: "#ef4444", category: "Komik"    },
-  { title: "Solo Leveling",        file: "sl.pdf",            emoji: "⚔️", color: "#6366f1", category: "Komik"    },
-  { title: "Detective Conan",      file: "conan.pdf",         emoji: "🕵️", color: "#10b981", category: "Komik"    },
-  { title: "Laskar Pelangi",       file: "lp.pdf",            emoji: "🌈", color: "#10b981", category: "Novel"    },
-  { title: "Harry Potter",         file: "hp.pdf",            emoji: "⚡", color: "#475569", category: "Novel"    },
-  { title: "Laut Bercerita",       file: "laut.pdf",          emoji: "🌊", color: "#3b82f6", category: "Novel"    },
-  { title: "Dilan 1990",           file: "dilan.pdf",         emoji: "🏍️", color: "#f59e0b", category: "Novel"    },
-  { title: "Kubo Won't Let Me...", file: "kubo.pdf",          emoji: "👻", color: "#ef4444", category: "Novel"    },
-  { title: "Stop Overthinking",    file: "stop.pdf",          emoji: "🧠", color: "#6366f1", category: "Novel"    },
-  { title: "Soal Geografi 11",     file: "geografi 11.pdf",   emoji: "🗺️", color: "#f59e0b", category: "Ujian"    },
-  { title: "Soal OSN Tingkat Kota",file: "osn-kota.pdf",      emoji: "🏆", color: "#f97316", category: "Ujian"    },
-  { title: "Latihan Sosiologi 11", file: "sosiologi 11.pdf",  emoji: "👥", color: "#10b981", category: "Latihan"  },
-  { title: "Literasi Digital pada masyarkat desa oleh Rural, I N", file: "Jurnal 1.pdf", emoji: "📖", color: "#3b82f6", category: "Jurnal" },
+  { title: "Koding dan Kecerdasan Artifisial",                            file: "koding.pdf",         emoji: "💻", color: "#8b5cf6", category: "Pelajaran" },
+  { title: "Matematika Kelas 5",                                          file: "matematika 5.pdf",   emoji: "➗", color: "#3b82f6", category: "Pelajaran" },
+  { title: "Bahasa Indonesia Kelas 5",                                    file: "bindo 5.pdf",        emoji: "🔤", color: "#ef4444", category: "Pelajaran" },
+  { title: "Pendidikan Jasmani, Olahraga, dan Kesehatan Kelas 5",        file: "pjok 5.pdf",         emoji: "🏃", color: "#10b981", category: "Pelajaran" },
+  { title: "Pendidikan Pancasila Kelas 5",                               file: "ppkn 5.pdf",         emoji: "🇮🇩", color: "#f59e0b", category: "Pelajaran" },
+  { title: "Bahasa Inggris Kelas 5",                                     file: "bing 5.pdf",         emoji: "🗣️", color: "#ec4899", category: "Pelajaran" },
+  { title: "Ilmu Pengetahuan Alam dan Sosial Kelas 5",                   file: "IPAS 5.pdf",         emoji: "🌍", color: "#14b8a6", category: "Pelajaran" },
+  { title: "Literasi Digital pada Masyarakat Desa (Rural, I.N.)",        file: "Jurnal 1.pdf",       emoji: "📖", color: "#3b82f6", category: "Jurnal"    },
 ];
 
+// Warna badge per kategori
+const CAT_COLOR = {
+  Pelajaran: { bg: '#dbeafe', text: '#1d4ed8' },
+  Komik:     { bg: '#fee2e2', text: '#b91c1c' },
+  Novel:     { bg: '#d1fae5', text: '#065f46' },
+  Ujian:     { bg: '#fef3c7', text: '#92400e' },
+  Latihan:   { bg: '#ede9fe', text: '#5b21b6' },
+  Jurnal:    { bg: '#e0f2fe', text: '#075985' },
+};
+
+// =============================================
+//  RENDER BUKU
+// =============================================
 function renderBooks(kw) {
-  const list    = document.getElementById("bookList"); 
+  const list    = document.getElementById("bookList");
   const role    = localStorage.getItem("user_role");
-  const keyword = (kw || "").toLowerCase();
+  const keyword = (kw || "").toLowerCase().trim();
 
   const filtered = books.filter(b => {
-    const matchKeyword  = b.title.toLowerCase().includes(keyword);
-    const matchKeywordCat = b.category.toLowerCase().includes(keyword);
-    const matchCategory = (currentCategory === "Semua") || (b.category === currentCategory);
+    // Murid tidak bisa lihat kategori Ujian
+    if (b.category === "Ujian" && role === "Murid") return false;
 
-    if (( b.category === "Ujian") && role === "Murid") {
-      return false;
-    }
+    const matchKeyword  = !keyword ||
+      b.title.toLowerCase().includes(keyword) ||
+      b.category.toLowerCase().includes(keyword);
 
-    return matchCategory && matchKeyword;
+    const matchCategory = currentCategory === "Semua" || b.category === currentCategory;
+
+    return matchKeyword && matchCategory;
   });
 
-  document.getElementById("bookCounter").innerText = `${filtered.length} buku ditemukan`;
+  const counter = document.getElementById("bookCounter");
+  if (counter) counter.innerText = `${filtered.length} buku ditemukan`;
+
+  if (!list) return;
 
   if (filtered.length === 0) {
     list.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-soft);" class="animate">
-        <div style="font-size: 52px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
-        <p style="font-weight: 800; font-size: 15px; color: var(--text-main); margin-bottom: 6px;">Buku tidak ditemukan</p>
-        <p style="font-size: 13px;">Coba kata kunci lain atau ganti kategori</p>
-      </div>
-    `;
+      <div style="grid-column:1/-1; text-align:center; padding:48px 20px; color:var(--text-2);" class="animate">
+        <div style="font-size:52px; margin-bottom:16px; opacity:0.5;">🔍</div>
+        <p style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:6px;">Buku tidak ditemukan</p>
+        <p style="font-size:13px;">Coba kata kunci lain atau ganti kategori</p>
+      </div>`;
     return;
   }
 
-  // Warna badge per kategori
-  const catColor = {
-    Pelajaran: { bg:'#dbeafe', text:'#1d4ed8' },
-    Komik:     { bg:'#fee2e2', text:'#b91c1c' },
-    Novel:     { bg:'#d1fae5', text:'#065f46' },
-    Ujian:     { bg:'#fef3c7', text:'#92400e' },
-    Latihan:   { bg:'#ede9fe', text:'#5b21b6' },
-    Jurnal:    { bg:'#e0f2fe', text:'#075985' },
-  };
-
   list.innerHTML = filtered.map((b, index) => {
-    const cc = catColor[b.category] || { bg:'#f3f4f6', text:'#374151' };
+    const cc = CAT_COLOR[b.category] || { bg: '#f3f4f6', text: '#374151' };
+    const savedPage = typeof getSavedPage === 'function' ? getSavedPage(b.file) : null;
+    const pageInfo  = (savedPage && savedPage > 1)
+      ? `<div style="margin-top:6px;"><span class="last-read-page">Hal. ${savedPage}</span></div>`
+      : '';
+    // Escape judul untuk inline onclick
+    const safeTitle = b.title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const safeFile  = b.file.replace(/'/g, "\\'");
     return `
     <div class="book-card animate" style="animation-delay:${index * 0.04}s; --card-color:${b.color};"
-         onclick="openBookDetails('${b.title.replace(/'/g, "\\'")}', '${b.file}', '${b.emoji}', '${b.color}')">
+         onclick="openBookDetails('${safeTitle}', '${safeFile}', '${b.emoji}', '${b.color}')">
       <div class="book-cover" style="background:${b.color}20; color:${b.color};">${b.emoji}</div>
-      <div class="book-title">${b.title}</div>
-      <span class="book-cat" style="background:${cc.bg}; color:${cc.text};">${b.category}</span>
+      <div class="book-title">${esc(b.title)}</div>
+      <span class="book-cat" style="background:${cc.bg}; color:${cc.text};">${esc(b.category)}</span>
+      ${pageInfo}
     </div>`;
   }).join('');
 }
 
+// =============================================
+//  SKELETON LOADING
+// =============================================
+function renderBooksSkeleton() {
+  const list = document.getElementById("bookList");
+  if (!list) return;
+  list.innerHTML = Array(8).fill(`<div class="skeleton"></div>`).join('');
+}
+
+// =============================================
+//  FILTER KATEGORI
+// =============================================
 function setCategory(cat) {
   currentCategory = cat;
   document.querySelectorAll('.cat-btn').forEach(btn => {
-    const btnCat = btn.getAttribute('data-category');
-    btn.classList.toggle('active-cat', btnCat === cat);
+    btn.classList.toggle('active-cat', btn.getAttribute('data-category') === cat);
   });
-  renderBooks(document.getElementById("searchInput").value);
+  const searchVal = document.getElementById("searchInput");
+  renderBooks(searchVal ? searchVal.value : "");
 }
 
+// =============================================
+//  TERAKHIR DIBACA
+// =============================================
 function renderLastRead() {
   const lastReadData = localStorage.getItem("last_read_book");
   const container    = document.getElementById("lastReadContainer");
   const cardPlace    = document.getElementById("lastReadCard");
-
   if (!container || !cardPlace) return;
 
-  if (lastReadData) {
-    try {
-      const book = JSON.parse(lastReadData);  
-      container.classList.remove("hidden");
-      cardPlace.innerHTML = `
-        <div onclick="openBookDetails('${book.title.replace(/'/g, "\\'")}', '${book.file}', '${book.emoji}', '${book.color || ''}')"
-             style="background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); cursor: pointer;">
-          <div style="font-size: 30px;">${book.emoji}</div>
-          <div style="flex: 1;">
-            <h4 style="margin: 0; font-size: 14px;">${book.title}</h4>
-            <p style="margin: 0; font-size: 11px; color: var(--text-soft);">Klik untuk lanjut membaca</p>
-          </div>
-          <div style="color: var(--accent); font-size: 20px;">➔</div>
+  if (!lastReadData) {
+    container.classList.add("hidden");
+    return;
+  }
+
+  try {
+    const book      = JSON.parse(lastReadData);
+    const savedPage = typeof getSavedPage === 'function' ? getSavedPage(book.file) : null;
+    const pageLabel = (savedPage && savedPage > 1) ? `Halaman ${savedPage}` : 'Klik untuk lanjut membaca';
+
+    const safeTitle = (book.title || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const safeFile  = (book.file  || '').replace(/'/g, "\\'");
+
+    container.classList.remove("hidden");
+    cardPlace.innerHTML = `
+      <div class="last-read-card"
+           onclick="openBookDetails('${safeTitle}', '${safeFile}', '${esc(book.emoji)}', '${esc(book.color || '')}')">
+        <div class="last-read-emoji">${esc(book.emoji)}</div>
+        <div class="last-read-info">
+          <div class="title">${esc(book.title)}</div>
+          <div class="sub">${esc(pageLabel)}</div>
         </div>
-      `;
-    } catch (e) {
-      localStorage.removeItem("last_read_book");
-      container.classList.add("hidden");
-    }
-  } else {
+        <div class="last-read-arrow">➔</div>
+      </div>`;
+  } catch (e) {
+    localStorage.removeItem("last_read_book");
     container.classList.add("hidden");
   }
 }
 
+// =============================================
+//  DETAIL BUKU (bottom sheet)
+// =============================================
 function openBookDetails(title, file, emoji, color) {
-  document.getElementById("sheetTitle").innerText = title;
-  document.getElementById("sheetEmoji").innerText = emoji;
+  const sheetTitle    = document.getElementById("sheetTitle");
+  const sheetEmoji    = document.getElementById("sheetEmoji");
+  const sheetCategory = document.getElementById("sheetCategory");
+  const sheetPreview  = document.getElementById("sheetPreview");
+  const btnReadNow    = document.getElementById("btnReadNow");
+
+  if (!sheetTitle) return;
+
+  sheetTitle.innerText    = title;
+  sheetEmoji.innerText    = emoji;
 
   const bookData = books.find(b => b.file === file);
-  document.getElementById("sheetCategory").innerText = bookData ? bookData.category : "Materi";
+  sheetCategory.innerText = bookData ? bookData.category : "Materi";
 
-  document.getElementById("sheetPreview").innerHTML = `
-    <div style="padding: 24px; background: ${color || 'var(--accent-soft)'}20; border-radius: 15px; margin-bottom: 20px;">
-      <div style="font-size: 64px;">${emoji}</div>
-      <p style="margin-top: 12px; font-weight: 800; font-size: 14px; color: var(--text-main);">Buku siap dibaca!</p>
-    </div>
-  `;
+  const savedPage = typeof getSavedPage === 'function' ? getSavedPage(file) : null;
+  const pageLabel = (savedPage && savedPage > 1)
+    ? `<p style="margin-top:8px; font-size:12px; color:var(--green); font-weight:700;">📑 Terakhir di halaman ${savedPage}</p>`
+    : '';
 
-  document.getElementById("btnReadNow").onclick = () => {
+  sheetPreview.innerHTML = `
+    <div style="padding:24px; background:${color || 'var(--accent-soft)'}20; border-radius:15px; margin-bottom:20px;">
+      <div style="font-size:64px;">${emoji}</div>
+      <p style="margin-top:12px; font-weight:800; font-size:14px; color:var(--text);">Buku siap dibaca!</p>
+      ${pageLabel}
+    </div>`;
+
+  btnReadNow.onclick = () => {
     closeSheet();
-    const lastRead = { file, title, emoji, color: color || (bookData ? bookData.color : ''), time: new Date().getTime() };
+    const lastRead = {
+      file, title, emoji,
+      color: color || (bookData ? bookData.color : ''),
+      time: Date.now()
+    };
     localStorage.setItem("last_read_book", JSON.stringify(lastRead));
     renderLastRead();
-    
-    // Panggil reader PDF Native
     bukaPDFNative(file, title);
   };
 
