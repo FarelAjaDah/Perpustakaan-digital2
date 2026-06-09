@@ -1,5 +1,7 @@
 /* ==============================================
    PUSTAKA DIGITAL — styles.css
+   Redesigned: lebih bersih, hangat, mudah dibaca
+   untuk guru SD–SMA dan murid
    ============================================== */
 
 /* --- TOKENS --- */
@@ -546,7 +548,33 @@ body {
 .pdf-swipe-hint.show { opacity: 1; }
 
 /* ==============================================
-   IFRAME (presentasi kelas)
+   LIVE PDF VIEWER (kelas — murid & guru)
+   ============================================== */
+#livePDFViewer {
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+#muridLiveCanvas,
+#guruLiveCanvas {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  display: block;
+  margin: 0 auto;
+}
+
+.live-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #10b981; color: white;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  padding: 3px 10px; border-radius: 20px;
+  animation: pulse 1.8s infinite;
+}
+
+/* ==============================================
+   IFRAME (presentasi kelas) — legacy fallback
    ============================================== */
 .iframe {
   background: white; border-radius: var(--r-md);
