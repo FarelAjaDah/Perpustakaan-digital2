@@ -2,7 +2,7 @@
 //  SERVICE WORKER — Pustaka Digital
 // =============================================
 
-const CACHE_NAME = 'pustaka-digital-V5'; // GANTI VERSI SEIAP UPDATE BIAR...BIARIN
+const CACHE_NAME = 'pustaka-digital-V5';
 
 const ASSETS_TO_CACHE = [
   './',
