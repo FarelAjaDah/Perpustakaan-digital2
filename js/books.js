@@ -2,14 +2,23 @@
 //  DATA BUKU 
 // =============================================
 const books = [
-  { title: "Koding dan Kecerdasan Artifisial",                            file: "koding.pdf",         emoji: "💻", color: "#8b5cf6", category: "Pelajaran" },
-  { title: "Matematika Kelas 5",                                          file: "matematika 5.pdf",   emoji: "➗", color: "#3b82f6", category: "Pelajaran" },
-  { title: "Bahasa Indonesia Kelas 5",                                    file: "bindo 5.pdf",        emoji: "🔤", color: "#ef4444", category: "Pelajaran" },
-  { title: "Pendidikan Jasmani, Olahraga, dan Kesehatan Kelas 5",        file: "pjok 5.pdf",         emoji: "🏃", color: "#10b981", category: "Pelajaran" },
+  { title: "Koding dan Kecerdasan Artifisial",                            file: "koding.pdf",        emoji: "💻", color: "#8b5cf6", category: "Pelajaran" },
+  { title: "Matematika Kelas 5",                                          file: "matematika 5.pdf",  emoji: "➗", color: "#3b82f6", category: "Pelajaran" },
+  { title: "Bahasa Indonesia Kelas 5",                                    file: "indo 5.pdf",       emoji: "🔤", color: "#ef4444", category: "Pelajaran" },
+  { title: "Pendidikan Jasmani, Olahraga, dan Kesehatan Kelas 5",        file: "pjok 5.pdf",         emoji: "⚽", color: "#10b981", category: "Pelajaran" },
   { title: "Pendidikan Pancasila Kelas 5",                               file: "ppkn 5.pdf",         emoji: "🇮🇩", color: "#f59e0b", category: "Pelajaran" },
-  { title: "Bahasa Inggris Kelas 5",                                     file: "bing 5.pdf",         emoji: "🗣️", color: "#ec4899", category: "Pelajaran" },
+  { title: "Bahasa Inggris Kelas 5",                                     file: "enggres 5.pdf",         emoji: "💬", color: "#ec4899", category: "Pelajaran" },
   { title: "Ilmu Pengetahuan Alam dan Sosial Kelas 5",                   file: "IPAS 5.pdf",         emoji: "🌍", color: "#14b8a6", category: "Pelajaran" },
   { title: "Literasi Digital pada Masyarakat Desa (Rural, I.N.)",        file: "Jurnal 1.pdf",       emoji: "📖", color: "#3b82f6", category: "Jurnal"    },
+  { title: "Matematika Kelas 8",                                         file: "mtk smp.pdf",        emoji: "📐", color: "#3b82f6", category: "Pelajaran" },
+  { title: "Pendidikan Agama dan Budi Pekerti kelas 8",                   file: "keagamaan smp.pdf",     emoji: "🕊️", color: "#fbbf24", category: "Pelajaran" },
+  { title: "Bahasa Indonesia Kelas 8",                                    file: "INDONESIA SMP.pdf",     emoji: "📕", color: "#ef4444", category: "Pelajaran" },
+  { title: "Bahasa Inggris Kelas 8",                                     file: "ENGGRES SMP.pdf",       emoji: "📗", color: "#ec4899", category: "Pelajaran" },
+  { title: "Ilmu Pengetahuan Alam kelas 8",                   file: "IPA SMP.pdf",       emoji: "🔬", color: "#14b8a6", category: "Pelajaran" },
+  { title: "Ilmu Pengetahuan Sosial kelas 8",                   file: "ips smp.pdf",       emoji: "🏛️", color: "#22c55e", category: "Pelajaran" },
+  { title:"Pendidikan Jasmani, Olahraga, dan Kesehatan Kelas 8",        file: "PJOK SMP.pdf",      emoji: "🏀", color: "#10b981", category: "Pelajaran" },
+  { title: "Pendidikan Pancasila Kelas 8",                               file: "PPKN SMP.pdf",      emoji: "🛡️", color: "#f59e0b", category: "Pelajaran" },
+  { title: "Informatika Kelas 8",                            file: "informatika smp.pdf", emoji: "🖥️", color: "#8b5cf6", category: "Pelajaran" },
 ];
 
 // Warna badge per kategori
