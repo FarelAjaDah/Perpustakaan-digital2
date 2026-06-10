@@ -10,7 +10,7 @@ let lastStatus      = "";
 let lastSyncStatus  = "";
 
 // =============================================
-//  XSS ESCAPE HELPERrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+//  XSS ESCAPE HELPER
 // =============================================
 function esc(str) {
   return String(str ?? "")

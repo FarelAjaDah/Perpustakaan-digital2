@@ -108,14 +108,24 @@ if ('serviceWorker' in navigator) {
 
 // =============================================
 //  OFFLINE READINESS CHECKER
-//  Tambahkan di main.js, di dalam DOMContentLoaded
 // =============================================
 
-// Dengarkan pesan dari Service Worker
 navigator.serviceWorker.addEventListener('message', (event) => {
 
-  // Notifikasi otomatis saat pertama kali install selesai
+  // Aset JS/CSS sudah siap — aplikasi bisa dipakai
+  if (event.data?.type === 'ASSETS_READY') {
+    console.log('✅ Aset utama siap');
+  }
+
+  // Progress download buku — tampilkan di UI
+  if (event.data?.type === 'BOOK_CACHE_PROGRESS') {
+    const { cached, total, percent, lastFile } = event.data;
+    _tampilkanProgressBuku(cached, total, percent, lastFile);
+  }
+
+  // Semua buku selesai di-cache
   if (event.data?.type === 'CACHE_READY') {
+    _sembunyikanProgressBuku();
     if (!localStorage.getItem('cache_ready_notified')) {
       showToast('✅ Semua buku tersimpan — siap dipakai offline!');
       localStorage.setItem('cache_ready_notified', '1');
@@ -127,8 +137,64 @@ navigator.serviceWorker.addEventListener('message', (event) => {
     const { total, cached, missing, ready, percent } = event.data;
     _tampilkanHasilCek(total, cached, missing, ready, percent);
   }
+
+  // SW baru aktif → reload
+  if (event.data?.type === 'SW_ACTIVATED') {
+    window.location.reload();
+  }
 });
 
+// =============================================
+//  Progress bar download buku (muncul di bawah layar)
+// =============================================
+let _progressToast = null;
+
+function _tampilkanProgressBuku(cached, total, percent, lastFile) {
+  if (!_progressToast) {
+    _progressToast = document.createElement('div');
+    _progressToast.id = 'bookCacheProgress';
+    _progressToast.style.cssText = `
+      position: fixed;
+      bottom: calc(80px + var(--safe-bottom, 0px));
+      left: 12px; right: 12px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 9999;
+      animation: toastIn 0.2s ease;
+      font-family: inherit;
+    `;
+    document.body.appendChild(_progressToast);
+  }
+
+  _progressToast.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span style="font-size:12px; font-weight:800; color:var(--text);">
+        📥 Menyimpan buku untuk offline...
+      </span>
+      <span style="font-size:11px; font-weight:700; color:var(--accent);">${percent}%</span>
+    </div>
+    <div style="background:var(--surface-2); border-radius:6px; height:6px; overflow:hidden;">
+      <div style="height:100%; width:${percent}%; background:var(--accent);
+                  border-radius:6px; transition:width 0.3s ease;"></div>
+    </div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:6px;">
+      ${cached}/${total} — ${lastFile}
+    </div>
+  `;
+}
+
+function _sembunyikanProgressBuku() {
+  if (_progressToast) {
+    _progressToast.style.opacity = '0';
+    _progressToast.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => {
+      if (_progressToast) { _progressToast.remove(); _progressToast = null; }
+    }, 400);
+  }
+}
 // =============================================
 //  Fungsi cek manual — dipanggil dari tombol
 // =============================================

@@ -1,5 +1,5 @@
 // =============================================
-//  PDF READER — Optimized + Robust
+//  PDF READER 
 // =============================================
 
 let pdfDoc           = null;
@@ -10,22 +10,24 @@ let currentPdfFile   = null;
 let pageCache        = {};
 let _renderAttempts  = 0;
 let _renderTimeout   = null;
+let _cachedScale     = null; 
 
-const WORKER_CDN     = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const MAX_CACHE_PAGES = 8;
-const RENDER_TIMEOUT_MS = 15000; // 15 detik batas render
+const WORKER_CDN      = './js/pdf.worker.min.js';
+const MAX_CACHE_PAGES = 6; 
+const RENDER_TIMEOUT_MS = 15000;
 
 // =============================================
-//  DETEKSI KEMAMPUAN DEVICE 
+//  DETEKSI KEMAMPUAN DEVICE — cached
 // =============================================
 function getOptimalScale() {
+  if (_cachedScale) return _cachedScale; 
   const cores = navigator.hardwareConcurrency || 2;
   const ram   = navigator.deviceMemory || 1;
-  // HP low-end desa: skala lebih kecil agar cepat
-  if (cores <= 2 || ram <= 1) return 0.75;
-  if (cores <= 4 || ram <= 2) return 1.0;
-  if (cores <= 6)             return 1.2;
-  return 1.4;
+  if (cores <= 2 || ram <= 1) _cachedScale = 0.75;
+  else if (cores <= 4 || ram <= 2) _cachedScale = 1.0;
+  else if (cores <= 6)             _cachedScale = 1.2;
+  else                             _cachedScale = 1.4;
+  return _cachedScale;
 }
 
 // =============================================
@@ -36,7 +38,6 @@ const MAX_LOAD_ATTEMPTS = 3;
 
 function bukaPDFNative(fileName, title) {
   if (typeof pdfjsLib === 'undefined') {
-    // pdfjsLib belum siap — tunggu sebentar lalu coba lagi
     showPDFLoading(true, 'Menyiapkan pembaca PDF...');
     setTimeout(() => bukaPDFNative(fileName, title), 1200);
     return;
@@ -46,7 +47,10 @@ function bukaPDFNative(fileName, title) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_CDN;
   }
 
-  // Reset state
+  if (currentPdfFile && currentPdfFile !== fileName) {
+    _clearCacheForFile(currentPdfFile);
+  }
+
   currentPdfFile  = fileName;
   _renderAttempts = 0;
   _loadAttempts   = 0;
@@ -59,7 +63,6 @@ function _doLoadPDF(fileName, title) {
   const modal = document.getElementById('pdfReaderModal');
   if (!modal) return;
 
-  // Buka modal hanya sekali
   if (!modal.classList.contains('pdf-open')) {
     modal.classList.remove('hidden');
     modal.classList.add('pdf-open');
@@ -74,13 +77,12 @@ function _doLoadPDF(fileName, title) {
   if (pageCountEl)  pageCountEl.textContent = '?';
   updateProgressBar(0, 1);
 
-  const attempt     = _loadAttempts + 1;
-  const loadingMsg  = attempt === 1
+  const attempt    = _loadAttempts + 1;
+  const loadingMsg = attempt === 1
     ? 'Membuka buku...'
     : `Mencoba lagi... (${attempt}/${MAX_LOAD_ATTEMPTS})`;
   showPDFLoading(true, loadingMsg);
 
-  // Timeout: jika tidak ada respons dalam 20 detik
   const loadTimeout = setTimeout(() => {
     showPDFLoading(false);
     _handleLoadError(fileName, title, null, 'timeout');
@@ -96,7 +98,7 @@ function _doLoadPDF(fileName, title) {
   }).promise
     .then((doc) => {
       clearTimeout(loadTimeout);
-      _loadAttempts = 0; // reset counter
+      _loadAttempts = 0;
       pdfDoc = doc;
 
       const total = doc.numPages;
@@ -117,7 +119,6 @@ function _doLoadPDF(fileName, title) {
 function _handleLoadError(fileName, title, err, reason) {
   console.warn(`PDF load ${reason} [attempt ${_loadAttempts + 1}]:`, err);
 
-  // Cek apakah ini error "file tidak ada" (404) — tidak perlu retry
   const is404 = err && (
     err.message?.includes('404') ||
     err.name === 'MissingPDFException' ||
@@ -130,14 +131,12 @@ function _handleLoadError(fileName, title, err, reason) {
     return;
   }
 
-  // Untuk error lain (network timeout, SW belum siap, dll) — retry otomatis
   if (_loadAttempts < MAX_LOAD_ATTEMPTS - 1) {
     _loadAttempts++;
-    const delay = _loadAttempts * 1500; // 1.5s, 3s
+    const delay = _loadAttempts * 1500;
     showPDFLoading(true, `Koneksi lambat, coba lagi (${_loadAttempts}/${MAX_LOAD_ATTEMPTS - 1})...`);
     setTimeout(() => _doLoadPDF(fileName, title), delay);
   } else {
-    // Semua retry habis — tampilkan tombol coba lagi manual
     _loadAttempts = 0;
     showPDFLoading(false);
     _showRetryOption(fileName, title,
@@ -149,14 +148,13 @@ function _handleLoadError(fileName, title, err, reason) {
 }
 
 // =============================================
-//  RENDER HALAMAN — Offscreen canvas + timeout guard
+//  RENDER HALAMAN
 // =============================================
 function renderPage(num) {
   if (!pdfDoc) return;
   pageIsRendering = true;
   showPDFLoading(true, `Memuat halaman ${num}...`);
 
-  // Guard: jika render macet > RENDER_TIMEOUT_MS, beri opsi retry
   _clearRenderTimeout();
   _renderTimeout = setTimeout(() => {
     if (pageIsRendering) {
@@ -187,7 +185,7 @@ function renderPage(num) {
     renderTask.promise
       .then(() => {
         _clearRenderTimeout();
-        _renderAttempts = 0; // reset counter jika berhasil
+        _renderAttempts = 0;
 
         const canvas = document.getElementById('pdf-canvas');
         if (!canvas) { pageIsRendering = false; showPDFLoading(false); return; }
@@ -198,9 +196,9 @@ function renderPage(num) {
 
         _addToCache(cacheKey, offscreen);
         _afterRender(num);
-
-        // Pre-render halaman berikutnya di background (delay agar UI tidak terblok)
-        setTimeout(() => preRenderNextPage(num + 1, SCALE), 300);
+        setTimeout(() => {
+          if (!pageIsRendering) preRenderNextPage(num + 1, SCALE);
+        }, 500);
       })
       .catch((err) => {
         _clearRenderTimeout();
@@ -208,7 +206,6 @@ function renderPage(num) {
         showPDFLoading(false);
         console.error('Render error:', err);
 
-        // Retry otomatis maksimal 2 kali
         if (_renderAttempts < 2) {
           _renderAttempts++;
           showToast(`⚙️ Coba render ulang... (${_renderAttempts}/2)`);
@@ -234,37 +231,43 @@ function _clearRenderTimeout() {
 
 function _paintCachedPage(cacheKey, num) {
   const canvas = document.getElementById('pdf-canvas');
-  if (canvas) {
-    const cached = pageCache[cacheKey];
-    canvas.width  = cached.width;
-    canvas.height = cached.height;
-    canvas.getContext('2d').drawImage(cached, 0, 0);
-  }
+  if (!canvas) { pageIsRendering = false; showPDFLoading(false); return; }
+
+  const SCALE    = getOptimalScale();
+  const viewport = { width: pageCache[cacheKey].width, height: pageCache[cacheKey].height };
+  canvas.width   = viewport.width;
+  canvas.height  = viewport.height;
+  canvas.getContext('2d').drawImage(pageCache[cacheKey], 0, 0);
+
   _afterRender(num);
 }
 
 function _afterRender(num) {
   pageIsRendering = false;
   showPDFLoading(false);
+  updateProgressBar(num, pdfDoc ? pdfDoc.numPages : num);
+  savePage(currentPdfFile, num);
 
-  const pageNumEl = document.getElementById('page-num');
-  if (pageNumEl) pageNumEl.textContent = num;
-  updateProgressBar(num, pdfDoc ? pdfDoc.numPages : 1);
-  if (currentPdfFile) savePage(currentPdfFile, num);
+  const el = document.getElementById('page-num');
+  if (el) el.textContent = num;
+  const inp = document.getElementById('pageJumpInput');
+  if (inp) inp.value = '';
 
-  const scrollArea = document.getElementById('pdfScrollArea');
-  if (scrollArea) scrollArea.scrollTop = 0;
-
+  // Proses halaman pending jika ada
   if (pageNumIsPending !== null) {
-    const pending    = pageNumIsPending;
+    const pending = pageNumIsPending;
     pageNumIsPending = null;
     renderPage(pending);
   }
 }
 
+// =============================================
+//  CACHE MANAGEMENT 
+// =============================================
 function _addToCache(key, canvas) {
   const keys = Object.keys(pageCache);
   if (keys.length >= MAX_CACHE_PAGES) {
+    // Hapus entry paling lama (FIFO)
     const oldest = keys[0];
     pageCache[oldest].width  = 0;
     pageCache[oldest].height = 0;
@@ -273,27 +276,45 @@ function _addToCache(key, canvas) {
   pageCache[key] = canvas;
 }
 
-function preRenderNextPage(nextNum, scale) {
-  if (!pdfDoc || nextNum > pdfDoc.numPages) return;
-  const nextCacheKey = `${currentPdfFile}_p_${nextNum}_s_${scale}`;
-  if (pageCache[nextCacheKey]) return;
-
-  pdfDoc.getPage(nextNum)
-    .then((page) => {
-      const viewport  = page.getViewport({ scale });
-      const preCanvas = document.createElement('canvas');
-      preCanvas.width  = viewport.width;
-      preCanvas.height = viewport.height;
-      page.render({ canvasContext: preCanvas.getContext('2d'), viewport }).promise
-        .then(() => { _addToCache(nextCacheKey, preCanvas); })
-        .catch(() => {});
-    })
-    .catch(() => {});
+function _clearCacheForFile(fileName) {
+  Object.keys(pageCache).forEach(key => {
+    if (key.startsWith(fileName)) {
+      pageCache[key].width  = 0;
+      pageCache[key].height = 0;
+      delete pageCache[key];
+    }
+  });
 }
 
+// =============================================
+//  PRE-RENDER HALAMAN BERIKUTNYA
+// =============================================
+function preRenderNextPage(nextNum, scale) {
+  if (!pdfDoc || nextNum > pdfDoc.numPages || pageIsRendering) return;
+  const cacheKey = `${currentPdfFile}_p_${nextNum}_s_${scale}`;
+  if (pageCache[cacheKey]) return; // sudah ada di cache
+
+  pdfDoc.getPage(nextNum).then((page) => {
+    if (pageIsRendering) return; // batalkan jika tiba-tiba ada render baru
+    const viewport  = page.getViewport({ scale });
+    const offscreen = document.createElement('canvas');
+    offscreen.width  = viewport.width;
+    offscreen.height = viewport.height;
+    page.render({ canvasContext: offscreen.getContext('2d'), viewport }).promise
+      .then(() => _addToCache(cacheKey, offscreen))
+      .catch(() => {});
+  }).catch(() => {});
+}
+
+// =============================================
+//  QUEUE RENDER — Anti-rapid-click
+// =============================================
 function queueRenderPage(num) {
-  if (pageIsRendering) { pageNumIsPending = num; }
-  else { renderPage(num); }
+  if (pageIsRendering) {
+    pageNumIsPending = num;
+  } else {
+    renderPage(num);
+  }
 }
 
 function onPrevPage() {
@@ -309,7 +330,7 @@ function onNextPage() {
 }
 
 // =============================================
-//  JUMP TO PAGE (input manual)
+//  JUMP TO PAGE
 // =============================================
 function jumpToPage() {
   const input = document.getElementById('pageJumpInput');
@@ -327,21 +348,23 @@ function jumpToPage() {
 }
 
 // =============================================
-//  TUTUP PDF
+//  TUTUP PDF 
 // =============================================
 function closePDFReader() {
   _clearRenderTimeout();
   const modal = document.getElementById('pdfReaderModal');
-  if (modal) modal.classList.remove('pdf-open');
+  if (modal) {
+    modal.classList.remove('pdf-open');
+    modal.classList.add('hidden'); 
+  }
 
   if (currentPdfFile) {
-    Object.keys(pageCache).forEach(key => {
-      if (key.startsWith(currentPdfFile)) {
-        pageCache[key].width  = 0;
-        pageCache[key].height = 0;
-        delete pageCache[key];
-      }
-    });
+    _clearCacheForFile(currentPdfFile);
+  }
+
+  // Destroy pdfDoc agar memory dibebaskan oleh GC
+  if (pdfDoc) {
+    pdfDoc.destroy().catch(() => {}); 
   }
 
   pdfDoc           = null;
@@ -355,7 +378,7 @@ function closePDFReader() {
 }
 
 // =============================================
-//  HELPERS — private
+//  HELPERS
 // =============================================
 function _resetScrollArea() {
   const scrollArea = document.getElementById('pdfScrollArea');
@@ -379,12 +402,10 @@ function _resetScrollArea() {
   }
 }
 
-// Tampilkan saat render macet — tombol coba lagi
 function _showRenderStuck(num) {
   const scrollArea = document.getElementById('pdfScrollArea');
   if (!scrollArea) return;
 
-  // Hapus pesan error lama
   const oldErr = scrollArea.querySelector('.pdf-error-inline');
   if (oldErr) oldErr.remove();
 
@@ -424,18 +445,23 @@ function _showRetryOption(fileName, title, msg) {
 
   const errDiv = document.createElement('div');
   errDiv.style.cssText = 'padding:48px 24px; text-align:center;';
+  errDiv.dataset.fileName = fileName;
+  errDiv.dataset.title    = title;
   errDiv.innerHTML = `
     <div style="font-size:52px; margin-bottom:16px;">🐢</div>
     <p style="font-weight:800; font-size:16px; color:var(--text); margin-bottom:8px;">Koneksi Lambat</p>
     <p style="font-size:13px; line-height:1.6; color:var(--text-2); margin-bottom:20px;">${msg}</p>
-    <button onclick="closePDFReader(); setTimeout(()=>bukaPDFNative('${fileName.replace(/'/g,"\\'")}','${title.replace(/'/g,"\\'")}'),200);" 
-      class="btn-main" style="max-width:200px; margin:0 auto 10px;">🔄 Coba Lagi</button>
+    <button class="btn-retry-load btn-main" style="max-width:200px; margin:0 auto 10px;">🔄 Coba Lagi</button>
     <br>
     <button onclick="closePDFReader()" style="
       background:none; border:none; color:var(--text-2); font-size:13px;
       font-weight:700; cursor:pointer; margin-top:4px; font-family:inherit; padding:6px;">
       ← Kembali</button>`;
   scrollArea.appendChild(errDiv);
+  errDiv.querySelector('.btn-retry-load').addEventListener('click', () => {
+    closePDFReader();
+    setTimeout(() => bukaPDFNative(fileName, title), 200);
+  });
 }
 
 function _showPDFError(fileName) {
@@ -467,10 +493,10 @@ function updateProgressBar(current, total) {
 }
 
 // =============================================
-//  LOADING OVERLAY — dengan pesan dinamis
+//  LOADING OVERLAY
 // =============================================
 function showPDFLoading(show, msg) {
-  const el  = document.getElementById('pdfLoadingOverlay');
+  const el = document.getElementById('pdfLoadingOverlay');
   if (!el) return;
   el.style.display = show ? 'flex' : 'none';
   if (show && msg) {
@@ -524,15 +550,4 @@ function _destroyPDFSwipe() {
     scrollArea._hammerPDFInstance.destroy();
     scrollArea._hammerPDFInstance = null;
   }
-}
-
-// =============================================
-//  SYNC page-num display (visible sekarang)
-// =============================================
-const _origAfterRender = _afterRender;
-function _syncPageDisplay(num) {
-  const el = document.getElementById('page-num');
-  if (el) el.textContent = num;
-  const inp = document.getElementById('pageJumpInput');
-  if (inp) inp.value = '';  // kosongkan setelah jump
 }
