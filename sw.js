@@ -2,7 +2,7 @@
 //  SERVICE WORKER — Pustaka Digital
 // =============================================
 
-const CACHE_NAME = 'pustaka-digital-V6'; // <-- naikkan versi setiap deploy!
+const CACHE_NAME = 'pustaka-digital-V7'; // <-- naikkan versi setiap deploy!
 
 const ASSETS_TO_CACHE = [
   './',
