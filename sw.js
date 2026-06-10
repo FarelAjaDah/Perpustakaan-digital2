@@ -2,7 +2,7 @@
 //  SERVICE WORKER — Pustaka Digital
 // =============================================
 
-const CACHE_NAME = 'pustaka-digital-V5';
+const CACHE_NAME = 'pustaka-digital-V6'; // <-- naikkan versi setiap deploy!
 
 const ASSETS_TO_CACHE = [
   './',
@@ -18,9 +18,10 @@ const ASSETS_TO_CACHE = [
   './js/qr.js',
   './js/storage.js',
   './js/ui.js',
+  './js/update-logic.js',
 ];
 
-const BOOKS_TO_CACHE = [ // SETIAP NAMBAH BUKU, TAMBAHKAN JUGA DI SINI YA BUJANG
+const BOOKS_TO_CACHE = [ // setiap  nambah buku, pastikan update daftar ini juga ya!
   './books/indo 5.pdf',
   './books/pjok 5.pdf',
   './books/ppkn 5.pdf',
@@ -40,114 +41,107 @@ const BOOKS_TO_CACHE = [ // SETIAP NAMBAH BUKU, TAMBAHKAN JUGA DI SINI YA BUJANG
   './books/informatika smp.pdf',
 ];
 
-// Semua file yang seharusnya ada di cache (untuk cek manual)
 const ALL_CACHED_FILES = [...ASSETS_TO_CACHE, ...BOOKS_TO_CACHE];
 
 // =============================================
-//  INSTALL — Cache semua file
+//  INSTALL
 // =============================================
 self.addEventListener('install', (event) => {
+  // JANGAN skipWaiting otomatis — tunggu user konfirmasi
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return Promise.allSettled([
         ...ASSETS_TO_CACHE.map(a => cache.add(a).catch(e => console.warn('Cache skip:', a, e))),
-        ...BOOKS_TO_CACHE.map(a => cache.add(a).catch(e => console.warn('Cache skip:', a, e))),
+        ...BOOKS_TO_CACHE.map(a  => cache.add(a).catch(e => console.warn('Cache skip:', a, e))),
       ]);
     }).then(() => {
-      // Kirim pesan ke semua tab: cache selesai
       self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
-        clients.forEach(client => client.postMessage({ type: 'CACHE_READY' }));
+        clients.forEach(c => c.postMessage({ type: 'CACHE_READY' }));
       });
     })
   );
-  self.skipWaiting();
+  // Tidak skipWaiting di sini — biarkan banner yang memutuskan
 });
 
 // =============================================
-//  ACTIVATE — Hapus cache lama
+//  ACTIVATE
 // =============================================
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then((names) =>
+      Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+    ).then(() => {
+      self.clients.claim();
+      // Beritahu semua tab bahwa SW baru sudah aktif → trigger reload
+      self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+        clients.forEach(c => c.postMessage({ type: 'SW_ACTIVATED' }));
+      });
+    })
   );
 });
 
 // =============================================
-//  FETCH — Cache First → Network Fallback
+//  FETCH — Cache First
 // =============================================
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
-
   if (!url.startsWith('http://') && !url.startsWith('https://')) return;
   if (url.includes('firebasedatabase') || url.includes('googleapis') || url.includes('google.com')) return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
-
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
       return fetch(event.request)
-        .then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            (networkResponse.type === 'basic' || networkResponse.type === 'cors')
-          ) {
-            return saveToCache(event.request, networkResponse);
+        .then((res) => {
+          if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
+            return saveToCache(event.request, res);
           }
-          return networkResponse;
+          return res;
         })
         .catch(() => {
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
+          if (event.request.mode === 'navigate') return caches.match('./index.html');
         });
     })
   );
 });
 
 // =============================================
-//  MESSAGE — Terima perintah cek cache dari halaman
+//  MESSAGE
 // =============================================
 self.addEventListener('message', async (event) => {
-  if (event.data?.type !== 'CHECK_CACHE_STATUS') return;
 
-  const cache  = await caches.open(CACHE_NAME);
-  const total  = ALL_CACHED_FILES.length;
-  let cached   = 0;
-  let missing  = [];
+  // User tekan "Perbarui Sekarang" → SW baru ambil alih
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
 
-  await Promise.all(
-    ALL_CACHED_FILES.map(async (file) => {
-      const match = await cache.match(file);
-      if (match) {
-        cached++;
-      } else {
-        missing.push(file);
-      }
-    })
-  );
+  // Cek status cache manual
+  if (event.data?.type === 'CHECK_CACHE_STATUS') {
+    const cache   = await caches.open(CACHE_NAME);
+    const total   = ALL_CACHED_FILES.length;
+    let cached    = 0;
+    let missing   = [];
 
-  // Kirim hasil balik ke halaman
-  event.source.postMessage({
-    type:    'CACHE_STATUS_RESULT',
-    total,
-    cached,
-    missing,
-    ready:   cached === total,
-    percent: Math.round((cached / total) * 100),
-  });
+    await Promise.all(
+      ALL_CACHED_FILES.map(async (file) => {
+        const match = await cache.match(file);
+        if (match) cached++;
+        else missing.push(file);
+      })
+    );
+
+    event.source.postMessage({
+      type:    'CACHE_STATUS_RESULT',
+      total, cached, missing,
+      ready:   cached === total,
+      percent: Math.round((cached / total) * 100),
+    });
+  }
 });
 
 function saveToCache(request, response) {
-  const responseToCache = response.clone();
-  caches.open(CACHE_NAME).then((cache) => {
-    cache.put(request, responseToCache);
-  });
+  const clone = response.clone();
+  caches.open(CACHE_NAME).then(c => c.put(request, clone));
   return response;
 }
