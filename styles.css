@@ -1,28 +1,28 @@
 /* ==============================================
    PUSTAKA DIGITAL — styles.css
-   Redesigned: lebih bersih, hangat, mudah dibaca
-   untuk guru SD–SMA dan murid
    ============================================== */
 
 /* --- TOKENS --- */
 :root {
-  --bg:           #f4f7f4;
+  --bg:           #f5f3ee;
   --surface:      #ffffff;
-  --surface-2:    #edf2ed;
-  --border:       rgba(0,0,0,0.08);
-  --text:         #1c2b1c;
-  --text-2:       #4e6a4e;
-  --text-soft:    #90ab90;
-  --green:        #2d7a50;
-  --green-light:  #e6f4ec;
-  --green-dim:    rgba(45,122,80,0.12);
+  --surface-2:    #ede9e1;
+  --border:       rgba(0,0,0,0.09);
+  --text:         #1e2820;
+  --text-2:       #5a6a50;
+  --text-soft:    #96a886;
+  --green:        #2e7d52;
+  --green-light:  #e8f5ee;
+  --green-dim:    rgba(46,125,82,0.13);
+  --amber:        #d97706;
+  --amber-light:  #fef3c7;
   --red:          #dc3a3a;
-  --accent:       #2d7a50;
-  --accent-soft:  #e6f4ec;
+  --accent:       #2e7d52;
+  --accent-soft:  #e8f5ee;
   --card-bg:      #ffffff;
-  --input-bg:     #edf2ed;
+  --input-bg:     #ede9e1;
   --glass-border: rgba(0,0,0,0.08);
-  --nav:          rgba(255,255,255,0.96);
+  --nav:          rgba(253,251,247,0.97);
   --shadow-sm:    0 1px 4px rgba(0,0,0,0.06);
   --shadow-1:     0 2px 8px rgba(0,0,0,0.07);
   --shadow-2:     0 4px 18px rgba(0,0,0,0.10);
@@ -37,22 +37,24 @@
 }
 
 [data-theme="dark"] {
-  --bg:           #111a11;
-  --surface:      #192019;
-  --surface-2:    #21302a;
+  --bg:           #121a12;
+  --surface:      #1a211a;
+  --surface-2:    #222e24;
   --border:       rgba(255,255,255,0.08);
-  --text:         #dceadc;
-  --text-2:       #78997a;
+  --text:         #dde8dd;
+  --text-2:       #7a997c;
   --text-soft:    #4a6a4e;
   --green:        #4cb97c;
-  --green-light:  rgba(76,185,124,0.13);
-  --green-dim:    rgba(76,185,124,0.11);
+  --green-light:  rgba(76,185,124,0.14);
+  --green-dim:    rgba(76,185,124,0.12);
+  --amber:        #fbbf24;
+  --amber-light:  rgba(251,191,36,0.12);
   --accent:       #4cb97c;
-  --accent-soft:  rgba(76,185,124,0.13);
-  --card-bg:      #192019;
-  --input-bg:     #21302a;
+  --accent-soft:  rgba(76,185,124,0.14);
+  --card-bg:      #1a211a;
+  --input-bg:     #222e24;
   --glass-border: rgba(255,255,255,0.08);
-  --nav:          rgba(17,26,17,0.97);
+  --nav:          rgba(18,26,18,0.97);
 }
 
 /* --- RESET --- */
@@ -84,8 +86,8 @@ body {
   padding: 24px;
   padding-bottom: calc(24px + var(--safe-bottom));
   background:
-    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(45,122,80,0.10) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 65% at 88% 92%, rgba(45,122,80,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(46,125,82,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 65% at 88% 92%, rgba(217,119,6,0.06) 0%, transparent 65%),
     var(--bg);
 }
 
@@ -104,6 +106,11 @@ body {
 .login-header h1 {
   font-size: 62px; line-height: 1; margin-bottom: 16px;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
+  animation: bookBounce 2.4s var(--ease) infinite;
+}
+@keyframes bookBounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
 }
 .login-header h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 6px; }
 .login-header p  { font-size: 14px; color: var(--text-2); font-weight: 500; }
@@ -126,7 +133,6 @@ body {
   background: var(--surface);
 }
 
-/* Animasi goyangan untuk error login */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20%       { transform: translateX(-6px); }
@@ -147,7 +153,7 @@ body {
 }
 .btn-login {
   margin-top: 10px;
-  box-shadow: 0 6px 22px rgba(45,122,80,0.28);
+  box-shadow: 0 6px 22px rgba(46,125,82,0.28);
 }
 .btn-main:hover   { filter: brightness(1.08); }
 .btn-main:active  { transform: scale(0.97); filter: brightness(0.95); }
@@ -177,7 +183,7 @@ body {
   padding: 5px 14px; border-radius: 20px; text-transform: uppercase;
 }
 [data-user-role="Guru"]      .role-badge { background: var(--green); color: white; }
-[data-user-role="Murid"]     .role-badge { background: #e07a2e; color: white; }
+[data-user-role="Murid"]     .role-badge { background: var(--amber); color: white; }
 [data-user-role="Developer"] .role-badge { background: #7c3aed; color: white; }
 
 .theme-btn {
@@ -239,7 +245,7 @@ body {
 .cat-btn.active-cat {
   background: var(--green); color: white;
   border-color: transparent;
-  box-shadow: 0 2px 10px rgba(45,122,80,0.28);
+  box-shadow: 0 2px 10px rgba(46,125,82,0.28);
 }
 
 /* ==============================================
@@ -318,7 +324,6 @@ body {
   transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
   position: relative; overflow: hidden;
 }
-/* Garis warna di atas card */
 .book-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0;
   height: 4px; background: var(--card-color, var(--green));
@@ -337,9 +342,8 @@ body {
 .book-title {
   font-size: 12px; font-weight: 700; color: var(--text);
   line-height: 1.4; margin-bottom: 9px;
-  /* Batasi ke 3 baris */
   display: -webkit-box;
-  -line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -393,11 +397,11 @@ body {
 .nav-item:active { opacity: 0.7; }
 .nav-item.active {
   background: var(--green); color: white;
-  box-shadow: 0 3px 12px rgba(45,122,80,0.3);
+  box-shadow: 0 3px 12px rgba(46,125,82,0.3);
 }
 [data-user-role="Murid"] .nav-item.active {
-  background: #e07a2e;
-  box-shadow: 0 3px 12px rgba(224,122,46,0.28);
+  background: var(--amber);
+  box-shadow: 0 3px 12px rgba(217,119,6,0.28);
 }
 
 /* ==============================================
@@ -484,7 +488,7 @@ body {
   position: fixed;
   bottom: calc(98px + var(--safe-bottom));
   left: 50%; transform: translateX(-50%);
-  background: #1c2b1c; color: #dceadc;
+  background: #1e2820; color: #dde8dd;
   padding: 12px 22px; border-radius: 50px;
   font-size: 13px; font-weight: 600;
   z-index: 9999; display: none;
@@ -508,32 +512,52 @@ body {
 }
 #pdfReaderModal.pdf-open { display: flex; }
 
-#pdfProgress { height: 3px; background: var(--green-light); flex-shrink: 0; }
+#pdfProgress { height: 4px; background: var(--green-light); flex-shrink: 0; }
 #pdfProgressBar {
   height: 100%; background: var(--green);
   transition: width 0.3s var(--ease); width: 0%;
 }
 
+/* Loading overlay — lebih informatif */
 #pdfLoadingOverlay {
   position: absolute; inset: 0;
   background: var(--bg);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 14px; z-index: 10;
+  gap: 16px; z-index: 10;
 }
-#pdfLoadingOverlay .loading-spinner {
-  width: 40px; height: 40px;
-  border: 3px solid var(--surface-2);
+.loading-spinner {
+  width: 44px; height: 44px;
+  border: 3.5px solid var(--surface-2);
   border-top-color: var(--green);
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.75s linear infinite;
 }
-#pdfLoadingOverlay p { font-size: 13px; color: var(--text-2); font-weight: 700; }
+#pdfLoadingOverlay p {
+  font-size: 13px; color: var(--text-2); font-weight: 700;
+  text-align: center; max-width: 200px; line-height: 1.5;
+}
+/* Dot animasi di bawah spinner */
+#pdfLoadingOverlay::after {
+  content: '';
+  display: block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: 0.5;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(0.6); opacity: 0.3; }
+  50%       { transform: scale(1.2); opacity: 0.8; }
+}
 
 #pdfScrollArea {
   flex: 1; overflow: auto;
-  background: #c8d0c8; text-align: center; padding: 14px;
+  background: #c8cfc4; text-align: center; padding: 14px;
   position: relative;
+  /* scroll smooth di iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .pdf-swipe-hint {
@@ -547,22 +571,27 @@ body {
 }
 .pdf-swipe-hint.show { opacity: 1; }
 
-/* ==============================================
-   LIVE PDF VIEWER (kelas — murid & guru)
-   ============================================== */
-#livePDFViewer {
-  display: flex;
-  flex-direction: column;
-  min-height: 280px;
+/* Input jump halaman di header PDF */
+#pageJumpInput {
+  width: 48px; padding: 5px 6px;
+  text-align: center; font-family: inherit;
+  font-size: 14px; font-weight: 800;
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); outline: none;
+  transition: border-color 0.2s;
 }
+#pageJumpInput:focus { border-color: var(--green); }
+
+/* ==============================================
+   LIVE PDF VIEWER (kelas)
+   ============================================== */
+#livePDFViewer { display: flex; flex-direction: column; min-height: 280px; }
 
 #muridLiveCanvas,
 #guruLiveCanvas {
-  max-width: 100%;
-  border-radius: 8px;
+  max-width: 100%; border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  display: block;
-  margin: 0 auto;
+  display: block; margin: 0 auto;
 }
 
 .live-badge {
@@ -574,20 +603,12 @@ body {
 }
 
 /* ==============================================
-   IFRAME (presentasi kelas) — legacy fallback
-   ============================================== */
-.iframe {
-  background: white; border-radius: var(--r-md);
-  border: 1px solid var(--border); width: 100%; height: 400px;
-}
-
-/* ==============================================
    OFFLINE BANNER
    ============================================== */
 #offlineBanner {
   display: none;
-  background: #fff8e1; color: #7a5a00;
-  border: 1px solid #ffc107;
+  background: var(--amber-light); color: #7a4500;
+  border: 1px solid var(--amber);
   border-radius: var(--r-md);
   padding: 10px 16px; margin-bottom: 14px;
   font-size: 13px; font-weight: 700;
@@ -603,7 +624,6 @@ body {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.55; }
@@ -643,7 +663,15 @@ main.container { padding-top: 20px; }
 main.container > div { min-height: 60vh; }
 
 /* ==============================================
-   RESPONSIVE — TABLET & DESKTOP
+   IFRAME
+   ============================================== */
+.iframe {
+  background: white; border-radius: var(--r-md);
+  border: 1px solid var(--border); width: 100%; height: 400px;
+}
+
+/* ==============================================
+   RESPONSIVE
    ============================================== */
 @media (min-width: 768px) {
   .login-card  { padding: 54px 48px; }
@@ -654,9 +682,6 @@ main.container > div { min-height: 60vh; }
   .books-grid  { gap: 16px; }
 }
 
-/* ==============================================
-   HP KECIL (≤360px)
-   ============================================== */
 @media (max-width: 360px) {
   body             { font-size: 14px; }
   .login-card      { padding: 28px 18px; }
@@ -673,7 +698,8 @@ main.container > div { min-height: 60vh; }
    REDUCE MOTION
    ============================================== */
 @media (prefers-reduced-motion: reduce) {
-  .animate, .btn-spinner, #currentStatus { animation: none !important; }
+  .animate, .btn-spinner, #currentStatus,
+  .login-header h1 { animation: none !important; }
   * { transition-duration: 0.01ms !important; }
 }
 
@@ -681,14 +707,8 @@ main.container > div { min-height: 60vh; }
    PRESENCE BADGE
    ============================================== */
 .presence-badge {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: var(--surface-2);
-  color: var(--text-2);
+  font-size: 12px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  background: var(--surface-2); color: var(--text-2);
 }
-.presence-badge.active {
-  background: #dcfce7;
-  color: #15803d;
-}
+.presence-badge.active { background: #dcfce7; color: #15803d; }
